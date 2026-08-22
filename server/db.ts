@@ -178,7 +178,7 @@ export async function updateOwnedFinding(userId: number, findingId: string, upda
 export async function storeRemediation(userId: number, findingId: string, guidance: RemediationGuidance) { const db = mustDb(await getDb()); const owned = await getOwnedFinding(userId, findingId); if (!owned) return undefined; const id = nanoid(18); await db.insert(remediationRecommendations).values({ id, scanId: owned.scan.id, findingId, source: guidance.source, guidance }); return { id, guidance }; }
 export async function listRemediation(userId: number, findingId: string) { const db = mustDb(await getDb()); if (!(await getOwnedFinding(userId, findingId))) return undefined; return db.select().from(remediationRecommendations).where(eq(remediationRecommendations.findingId, findingId)).orderBy(desc(remediationRecommendations.createdAt)); }
 
-export async function storeReportArtifact(userId: number, scanId: string, format: "json" | "html" | "pdf", storageKey: string, url: string) {
+export async function storeReportArtifact(userId: number, scanId: string, format: "json" | "csv" | "html" | "pdf", storageKey: string, url: string) {
   const db = mustDb(await getDb()); const scan = await getOwnedScan(userId, scanId); if (!scan) return undefined; const id = nanoid(18); const expiresAt = scan.retentionExpiresAt ?? expiresInDays(DEFAULT_RETENTION_DAYS);
   await db.insert(reportArtifacts).values({ id, scanId, format, storageKey, url, expiresAt }); return { id, format, storageKey, url, expiresAt };
 }

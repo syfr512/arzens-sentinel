@@ -38,4 +38,19 @@
 - [x] Add fail-fast runtime environment validation for required application and security configuration.
 - [x] Add automated tests for report-retention expiry, scan cancellation/failure lifecycle paths, AI budget fallback, and retry-safe scan-start behavior.
 - [x] Update the post-hardening verification record with the final build, header, readiness, browser, and production-audit evidence.
-- [ ] Save the verified post-hardening project checkpoint and reference it in the final delivery summary.
+- [x] Save the verified post-hardening project checkpoint and reference it in the final delivery summary.
+- [x] Deliver the final hardening summary with the post-hardening checkpoint reference.
+- [x] Add a CSV findings export and expose it alongside the existing JSON, HTML, and PDF export controls.
+- [x] Add additional safe-passive detection coverage and reviewer-facing scan-comparison insights without expanding active testing behavior.
+- [x] Create controlled local HTTP(S) vulnerability fixtures with known safe-passive signals and test scanner accuracy only against those authorized targets.
+- [x] Verify JSON, CSV, HTML, and PDF export artifacts end to end for content, redaction, format correctness, and retrievable metadata.
+- [x] Expand automated coverage for the new scanner rules, CSV rendering, controlled-lab findings, and export artifacts.
+- [x] Produce a professional submission report describing objectives, architecture, methodology, implementation, validation evidence, results, limitations, and future scope.
+- [x] Add deployment decision guidance, production configuration template, GitHub issue/CI/release materials, and repository hygiene files.
+- [x] Run final release verification, review all new deliverables, and prepare a GitHub-ready handoff without pushing to an external repository.
+- [x] Create and run a real loopback-only controlled HTTP fixture server with deterministic passive signals, using the shared scanner only in the isolated local validation harness.
+- [x] Add an API-level CSV report artifact test covering generation, stored metadata, owner-checked signed retrieval, and download audit behavior.
+- [x] Add the controlled HTTP fixture and CSV artifact retrieval evidence to the verification record.
+- [x] Add a repository-safe local and production configuration template that concretely maps keys, sources, validation expectations, and secret-handling boundaries.
+- [x] Add an explicit GitHub release and handoff checklist covering CI, security review, deployment prerequisites, release notes, and publication steps.
+- [ ] Save the final GitHub-ready release checkpoint after the completed verification gate.

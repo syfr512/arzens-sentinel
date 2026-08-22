@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { ErrorState, LoadingState, PageHeader, RiskRing, SectionTitle, SeverityBadge } from "@/components/security-ui";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, ChevronRight, Download, ExternalLink, FileCode2, FileText, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ChevronRight, Download, ExternalLink, FileCode2, FileSpreadsheet, FileText, Loader2, MessageSquareText, ShieldCheck } from "lucide-react";
 import type { RemediationGuidance } from "@shared/security";
 import { useMemo, useState } from "react";
 import { useLocation, useRoute } from "wouter";
@@ -63,7 +63,7 @@ export default function ScanDetail() {
     (!endpointQuery || item.endpoint.toLowerCase().includes(endpointQuery.toLowerCase()))
   )), [allFindings, severityFilter, statusFilter, confidenceFilter, categoryFilter, endpointQuery]);
 
-  const exportReport = (format: "json" | "html" | "pdf") => {
+  const exportReport = (format: "json" | "csv" | "html" | "pdf") => {
     reports.mutate({ scanId, format }, {
       onSuccess: artifact => {
         if (artifact?.url) window.open(artifact.url, "_blank", "noopener,noreferrer");
@@ -102,6 +102,7 @@ export default function ScanDetail() {
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => setLocation("/history")}><ArrowLeft className="h-4 w-4" />History</Button>
             <Button variant="outline" onClick={() => exportReport("json")} disabled={reports.isPending}><FileCode2 className="h-4 w-4" />JSON</Button>
+            <Button variant="outline" onClick={() => exportReport("csv")} disabled={reports.isPending}><FileSpreadsheet className="h-4 w-4" />CSV</Button>
             <Button variant="outline" onClick={() => exportReport("html")} disabled={reports.isPending}><FileText className="h-4 w-4" />HTML</Button>
             <Button className="btn-amber" onClick={() => exportReport("pdf")} disabled={reports.isPending}><Download className="h-4 w-4" />{reports.isPending ? "Preparing" : "PDF"}</Button>
           </div>

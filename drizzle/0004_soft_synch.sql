@@ -1,0 +1,1 @@
+ALTER TABLE `report_artifacts` MODIFY COLUMN `format` enum('json','csv','html','pdf') NOT NULL;

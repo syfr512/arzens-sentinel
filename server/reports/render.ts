@@ -25,6 +25,18 @@ export function createJsonReport(detail: ReportDetail) {
   }, null, 2);
 }
 
+function escapeCsv(value: string | number | null | undefined) {
+  const normalized = String(value ?? "").replace(/\r?\n/g, " ").trim();
+  const formulaSafe = /^[=+\-@]/.test(normalized) ? `'${normalized}` : normalized;
+  return `"${formulaSafe.replace(/"/g, '""')}"`;
+}
+
+export function createCsvReport(detail: ReportDetail) {
+  const header = ["Finding ID", "Rule ID", "Title", "Category", "Severity", "Original severity", "Score", "Confidence", "Endpoint", "Redacted evidence", "Remediation", "Reviewer status", "Reviewer note", "Reference"];
+  const rows = detail.findings.map(item => [item.id, item.ruleId, item.title, item.category, item.severity, item.originalSeverity, (item.scoreTenth / 10).toFixed(1), item.confidence, item.endpoint, item.evidence, item.remediation, item.status, item.reviewerNote, item.reference]);
+  return [header, ...rows].map(row => row.map(escapeCsv).join(",")).join("\r\n");
+}
+
 export function createHtmlReport(detail: ReportDetail) {
   const score = (detail.scan.riskScore / 10).toFixed(1);
   const findingRows = detail.findings.map(item => `

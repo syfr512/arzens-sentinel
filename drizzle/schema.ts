@@ -126,7 +126,7 @@ export const scanEvents = mysqlTable("scan_events", {
 export const reportArtifacts = mysqlTable("report_artifacts", {
   id: varchar("id", { length: 32 }).primaryKey(),
   scanId: varchar("scanId", { length: 32 }).notNull(),
-  format: mysqlEnum("format", ["json", "html", "pdf"]).notNull(),
+  format: mysqlEnum("format", ["json", "csv", "html", "pdf"]).notNull(),
   storageKey: varchar("storageKey", { length: 512 }).notNull(),
   url: varchar("url", { length: 1024 }).notNull(),
   expiresAt: timestamp("expiresAt"),

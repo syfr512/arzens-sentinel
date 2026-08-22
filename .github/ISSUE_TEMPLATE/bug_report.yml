@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a reproducible product defect without including target secrets or sensitive evidence.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include credentials, personal data, raw target response bodies, private URLs, or report download links."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Concisely describe the observed behavior and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Safe reproduction steps
+      description: Use the fixture Demo Scan or a sanitized local example only.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Release or commit
+      placeholder: e.g. v1.0.0 or a short commit SHA

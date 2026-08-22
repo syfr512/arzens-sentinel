@@ -35,7 +35,7 @@ import {
   updateOwnedFinding,
   writeAuditEvent,
 } from "./db";
-import { createHtmlReport, createJsonReport, createPdfReport } from "./reports/render";
+import { createCsvReport, createHtmlReport, createJsonReport, createPdfReport } from "./reports/render";
 import { getDemoScanResult } from "./scanner/demo";
 import { generateRemediation } from "./scanner/remediation";
 import { assertSafeTarget, runSafePassiveScan, ScanCancelledError, TargetSafetyError, verifyWellKnownProof } from "./scanner/core";
@@ -130,9 +130,9 @@ export const appRouter = router({
     }),
   }),
   reports: router({
-    generate: protectedProcedure.input(scanIdInput.extend({ format: z.enum(["json", "html", "pdf"]) })).mutation(async ({ ctx, input }) => {
+    generate: protectedProcedure.input(scanIdInput.extend({ format: z.enum(["json", "csv", "html", "pdf"]) })).mutation(async ({ ctx, input }) => {
       const detail = await getScanDetail(ctx.user.id, input.scanId); if (!detail) throw new TRPCError({ code: "NOT_FOUND", message: "This scan was not found in your workspace." });
-      const payload = input.format === "json" ? createJsonReport(detail) : input.format === "html" ? createHtmlReport(detail) : createPdfReport(detail); const contentType = input.format === "json" ? "application/json" : input.format === "html" ? "text/html; charset=utf-8" : "application/pdf";
+      const payload = input.format === "json" ? createJsonReport(detail) : input.format === "csv" ? createCsvReport(detail) : input.format === "html" ? createHtmlReport(detail) : createPdfReport(detail); const contentType = input.format === "json" ? "application/json" : input.format === "csv" ? "text/csv; charset=utf-8" : input.format === "html" ? "text/html; charset=utf-8" : "application/pdf";
       const stored = await storagePut(`reports/${ctx.user.id}/${input.scanId}/arzens-sentinel-${input.scanId}.${input.format}`, payload, contentType); const artifact = await storeReportArtifact(ctx.user.id, input.scanId, input.format, stored.key, stored.url);
       await writeAuditEvent({ userId: ctx.user.id, action: "report.generated", entityType: "scan", entityId: input.scanId, outcome: "success", requestId: requestId(ctx.req.headers), metadata: { format: input.format } }); return artifact;
     }),

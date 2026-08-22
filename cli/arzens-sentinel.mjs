@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { getDemoScanResult } from "../server/scanner/demo.ts";
 import { runSafePassiveScan } from "../server/scanner/core.ts";
-import { createHtmlReport, createJsonReport, createPdfReport } from "../server/reports/render.ts";
+import { createCsvReport, createHtmlReport, createJsonReport, createPdfReport } from "../server/reports/render.ts";
 
 const args = process.argv.slice(2);
 const value = flag => {
@@ -17,8 +17,8 @@ function help() {
 Arzens Sentinel CLI — authorized, bounded web-security assessment
 
 Usage:
-  pnpm cli -- --demo [--format json|html|pdf] [--output ./reports]
-  pnpm cli -- --target https://app.example.com --authorized [--format json|html|pdf] [--max-pages 4] [--timeout-ms 8000] [--fail-on high]
+  pnpm cli -- --demo [--format json|csv|html|pdf] [--output ./reports]
+  pnpm cli -- --target https://app.example.com --authorized [--format json|csv|html|pdf] [--max-pages 4] [--timeout-ms 8000] [--fail-on high]
 
 Safety:
   Only Safe Passive assessment is available. Private, reserved, loopback,
@@ -41,7 +41,7 @@ const failOn = value("--fail-on");
 const maxPages = Number(value("--max-pages") || 4);
 const timeoutMs = Number(value("--timeout-ms") || 8000);
 
-if ((!target && !demo) || (target && demo) || !["json", "html", "pdf"].includes(format)) {
+if ((!target && !demo) || (target && demo) || !["json", "csv", "html", "pdf"].includes(format)) {
   help();
   process.exit(2);
 }
@@ -73,7 +73,7 @@ try {
   mkdirSync(outputDir, { recursive: true });
   const extension = format;
   const filePath = join(outputDir, `arzens-sentinel-${Date.now()}.${extension}`);
-  const payload = format === "json" ? createJsonReport(detail) : format === "html" ? createHtmlReport(detail) : createPdfReport(detail);
+  const payload = format === "json" ? createJsonReport(detail) : format === "csv" ? createCsvReport(detail) : format === "html" ? createHtmlReport(detail) : createPdfReport(detail);
   writeFileSync(filePath, payload);
   console.log(`Assessment completed safely. ${result.summary.findingCount} finding(s), score ${result.summary.score.toFixed(1)}/10.`);
   console.log(`Report written to ${filePath}`);

@@ -13,7 +13,7 @@ const sensitiveBodyPatterns = [/(bearer\s+)[a-z0-9._~+\-/=]+/gi, /(api[_-]?key\s
 
 export type ScannerLimits = Partial<typeof DEFAULT_LIMITS>;
 export type AuthorizedScope = { origin: string; scopePath: string };
-export type ScanExecutionOptions = { scope?: AuthorizedScope; shouldCancel?: () => Promise<boolean> | boolean };
+export type ScanExecutionOptions = { scope?: AuthorizedScope; shouldCancel?: () => Promise<boolean> | boolean; controlledLab?: boolean };
 
 type ResolvedAddress = { address: string; family: 4 | 6 };
 type ScannerResponse = { status: number; headers: Headers; body: string; finalUrl: URL; resolvedAddress: string };
@@ -48,30 +48,33 @@ function ensureScope(url: URL, scope?: AuthorizedScope) {
   if (!normalizedPath.startsWith(normalizedScope)) throw new TargetSafetyError("The request left the verified path scope and was blocked.");
 }
 
-async function resolvePublicHost(hostname: string): Promise<ResolvedAddress> {
-  if (hostnameBlocked(hostname)) throw new TargetSafetyError("This target is not permitted by the safety policy.");
+function isLoopbackAddress(address: string) { return address === "127.0.0.1" || address === "::1"; }
+
+async function resolvePublicHost(hostname: string, allowTestLoopback = false): Promise<ResolvedAddress> {
+  if (hostnameBlocked(hostname) && !(allowTestLoopback && (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"))) throw new TargetSafetyError("This target is not permitted by the safety policy.");
   const directVersion = isIP(hostname);
   if (directVersion) {
+    if (allowTestLoopback && isLoopbackAddress(hostname)) return { address: hostname, family: directVersion as 4 | 6 };
     const blocked = directVersion === 4 ? isBlockedIpv4(hostname) : isBlockedIpv6(hostname);
     if (blocked) throw new TargetSafetyError("Private, reserved, multicast, and loopback network targets are blocked.");
     return { address: hostname, family: directVersion as 4 | 6 };
   }
   let answers: Array<{ address: string; family: number }>;
   try { answers = await lookup(hostname, { all: true, verbatim: true }); } catch { throw new TargetSafetyError("The target hostname could not be resolved safely."); }
-  const publicAnswers = answers.filter(item => (item.family === 4 ? !isBlockedIpv4(item.address) : !isBlockedIpv6(item.address)));
+  const publicAnswers = answers.filter(item => (allowTestLoopback && isLoopbackAddress(item.address)) || (item.family === 4 ? !isBlockedIpv4(item.address) : !isBlockedIpv6(item.address)));
   if (!answers.length || publicAnswers.length !== answers.length) throw new TargetSafetyError("The target resolves to a private, reserved, or loopback network address.");
   const chosen = publicAnswers[0];
   if (!chosen || (chosen.family !== 4 && chosen.family !== 6)) throw new TargetSafetyError("The target returned an unsupported DNS address family.");
   return { address: chosen.address, family: chosen.family as 4 | 6 };
 }
 
-export async function assertSafeTarget(input: string, scope?: AuthorizedScope): Promise<URL> {
+export async function assertSafeTarget(input: string, scope?: AuthorizedScope, allowTestLoopback = false): Promise<URL> {
   let url: URL;
   try { url = new URL(input); } catch { throw new TargetSafetyError("Enter a valid absolute HTTP(S) URL."); }
   if (url.protocol !== "https:" && url.protocol !== "http:") throw new TargetSafetyError("Only HTTP(S) targets are supported.");
   if (url.username || url.password) throw new TargetSafetyError("Embedded URL credentials are not permitted.");
   ensureScope(url, scope);
-  await resolvePublicHost(url.hostname);
+  await resolvePublicHost(url.hostname, allowTestLoopback);
   url.hash = "";
   return url;
 }
@@ -132,11 +135,11 @@ async function requestPinned(url: URL, method: "GET" | "OPTIONS", resolved: Reso
   });
 }
 
-async function safeFetch(input: URL, limits: ReturnType<typeof boundedLimits>, method: "GET" | "OPTIONS" = "GET", scope?: AuthorizedScope): Promise<ScannerResponse> {
+async function safeFetch(input: URL, limits: ReturnType<typeof boundedLimits>, method: "GET" | "OPTIONS" = "GET", scope?: AuthorizedScope, allowTestLoopback = false): Promise<ScannerResponse> {
   let current = input;
   for (let redirectCount = 0; redirectCount <= limits.maxRedirects; redirectCount += 1) {
-    const checked = await assertSafeTarget(current.toString(), scope);
-    const resolved = await resolvePublicHost(checked.hostname);
+    const checked = await assertSafeTarget(current.toString(), scope, allowTestLoopback);
+    const resolved = await resolvePublicHost(checked.hostname, allowTestLoopback);
     const response = await requestPinned(checked, method, resolved, limits);
     if (response.status >= 300 && response.status < 400 && response.headers.get("location")) {
       current = new URL(response.headers.get("location")!, checked);
@@ -159,14 +162,24 @@ function assessResponse(url: URL, response: ScannerResponse, corsResponse?: Scan
   if (headers.get("x-content-type-options")?.toLowerCase() !== "nosniff") findings.push(finding("ARS-HEAD-003", endpoint, `X-Content-Type-Options is not nosniff.\n${headerEvidence}`));
   if (!headers.get("referrer-policy")) findings.push(finding("ARS-HEAD-004", endpoint, `Referrer-Policy absent.\n${headerEvidence}`));
   if (!headers.get("x-frame-options") && !headers.get("content-security-policy")?.includes("frame-ancestors")) findings.push(finding("ARS-HEAD-005", endpoint, `Neither X-Frame-Options nor CSP frame-ancestors was detected.\n${headerEvidence}`));
+  if (!headers.get("permissions-policy")) findings.push(finding("ARS-HEAD-006", endpoint, `Permissions-Policy absent.\n${headerEvidence}`));
+  if (/\b(?:script-src|default-src)\b[^;]*['"]unsafe-inline['"]/i.test(headers.get("content-security-policy") || "")) findings.push(finding("ARS-HEAD-007", endpoint, `Content-Security-Policy permits 'unsafe-inline' in a script-capable source directive.\n${headerEvidence}`));
   const cookies = headers.get("set-cookie") || "";
   if (cookies && !/;\s*secure\b/i.test(cookies)) findings.push(finding("ARS-COOKIE-001", endpoint, "Set-Cookie was observed without a Secure attribute. Cookie values have been redacted."));
   if (cookies && !/;\s*httponly\b/i.test(cookies)) findings.push(finding("ARS-COOKIE-002", endpoint, "Set-Cookie was observed without an HttpOnly attribute. Cookie values have been redacted."));
+  if (cookies && !/;\s*samesite=(?:lax|strict|none)\b/i.test(cookies)) findings.push(finding("ARS-COOKIE-003", endpoint, "Set-Cookie was observed without an explicit SameSite attribute. Cookie values have been redacted."));
   const corsOrigin = corsResponse?.headers.get("access-control-allow-origin") || headers.get("access-control-allow-origin");
   if (corsOrigin === "*") findings.push(finding("ARS-CORS-001", endpoint, `Safe OPTIONS/response check observed Access-Control-Allow-Origin: *.\n${corsResponse ? redactHeaders(corsResponse.headers) : headerEvidence}`));
   if (headers.get("server") || headers.get("x-powered-by")) findings.push(finding("ARS-DISC-001", endpoint, `Technology disclosure header observed.\n${headerEvidence}`));
   if (url.protocol === "https:" && /(?:src|href)=["']http:\/\//i.test(response.body)) findings.push(finding("ARS-MIXED-001", endpoint, "An HTTP subresource reference was detected in an HTTPS response body."));
   return findings;
+}
+
+/** Controlled-lab helper: evaluates a deterministic response fixture without networking or bypassing live target safeguards. */
+export function evaluatePassiveFixture(target: string, fixture: { headers?: Record<string, string>; body?: string; status?: number }) {
+  const url = new URL(target);
+  const response: ScannerResponse = { status: fixture.status ?? 200, headers: new Headers(fixture.headers), body: fixture.body ?? "", finalUrl: url, resolvedAddress: "198.51.100.10" };
+  return assessResponse(url, response);
 }
 
 function extractSameOriginLinks(body: string, base: URL, maxLinks: number, scope?: AuthorizedScope) {
@@ -192,16 +205,18 @@ export async function verifyWellKnownProof(origin: string, token: string): Promi
 
 export async function runSafePassiveScan(target: string, profile: AssessmentProfile = "safe_passive", limitOverrides: ScannerLimits = {}, execution: ScanExecutionOptions = {}): Promise<ScanResult> {
   if (profile !== "safe_passive") throw new TargetSafetyError("Active Lab checks are available only in documented local authorized testing.");
-  const started = Date.now(); const limits = boundedLimits(limitOverrides); const seed = await assertSafeTarget(target, execution.scope); const queue = [seed.toString()]; const visited = new Set<string>(); const endpoints: DiscoveredEndpoint[] = []; const findings: ScannerFinding[] = [];
+  const allowTestLoopback = execution.controlledLab === true;
+  if (allowTestLoopback && process.env.NODE_ENV !== "test") throw new TargetSafetyError("Loopback scanning is available only to the isolated automated controlled-lab harness.");
+  const started = Date.now(); const limits = boundedLimits(limitOverrides); const seed = await assertSafeTarget(target, execution.scope, allowTestLoopback); const queue = [seed.toString()]; const visited = new Set<string>(); const endpoints: DiscoveredEndpoint[] = []; const findings: ScannerFinding[] = [];
   const activity: ScanResult["activity"] = [{ at: new Date().toISOString(), label: "Target verified", detail: "URL, DNS answers, pinned outbound connection, redirect behavior, and profile boundaries were checked." }];
   while (queue.length && visited.size < limits.maxPages) {
     if (await execution.shouldCancel?.()) throw new ScanCancelledError();
     if (Date.now() - started >= limits.maxTotalMs) { activity.push({ at: new Date().toISOString(), label: "Assessment time budget reached", detail: `The hosted scan stopped after ${(limits.maxTotalMs / 1000).toFixed(0)} seconds to preserve the managed request-timeout envelope. Findings reflect only assessed endpoints.` }); break; }
     const next = queue.shift()!; if (visited.has(next)) continue; visited.add(next);
     try {
-      const response = await safeFetch(new URL(next), limits, "GET", execution.scope);
+      const response = await safeFetch(new URL(next), limits, "GET", execution.scope, allowTestLoopback);
       endpoints.push({ url: response.finalUrl.toString(), statusCode: response.status, contentType: response.headers.get("content-type"), discoveredBy: visited.size === 1 ? "seed" : "link" });
-      const corsProbe = await safeFetch(response.finalUrl, limits, "OPTIONS", execution.scope).catch(() => null);
+      const corsProbe = await safeFetch(response.finalUrl, limits, "OPTIONS", execution.scope, allowTestLoopback).catch(() => null);
       findings.push(...assessResponse(response.finalUrl, response, corsProbe));
       for (const link of extractSameOriginLinks(response.body, response.finalUrl, limits.maxPages - visited.size, execution.scope)) if (!visited.has(link)) queue.push(link);
       activity.push({ at: new Date().toISOString(), label: "Endpoint assessed", detail: `${response.status} ${response.finalUrl.pathname || "/"}; pinned IP ${response.resolvedAddress}; evidence redacted before persistence.` });
