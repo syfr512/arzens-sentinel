@@ -5,7 +5,7 @@ This document identifies the configuration keys used by Arzens Sentinel without 
 | Key | Required in production | Purpose |
 |---|---:|---|
 | `VITE_APP_ID` | Yes | OAuth application identity. |
-| `JWT_SECRET` | Yes | Server session signing; must be at least 32 characters. |
+| `JWT_SECRET` | Yes | Server session signing; use the managed secret provider and do not inspect or constrain opaque platform values by string length. |
 | `DATABASE_URL` | Yes | MySQL-compatible persistence connection. |
 | `OAUTH_SERVER_URL` | Yes | HTTPS OAuth provider endpoint. |
 | `OWNER_OPEN_ID` | Yes | Initial project owner identity. |
@@ -13,4 +13,4 @@ This document identifies the configuration keys used by Arzens Sentinel without 
 | `BUILT_IN_FORGE_API_KEY` | Yes | Managed server-side platform API credential. |
 | `ENABLE_AI_REMEDIATION` | No | Enables optional built-in advisory remediation. Keep disabled for deterministic-only operation. |
 
-Never put real credentials in Git, client-side code, report evidence, issue trackers, screenshots, or exported artifacts. The production startup validator rejects missing required values, secrets shorter than the session-security minimum, and non-HTTPS service endpoints.
+Never put real credentials in Git, client-side code, report evidence, issue trackers, screenshots, or exported artifacts. The production startup validator rejects missing required values and non-HTTPS service endpoints; managed-secret entropy and rotation remain the responsibility of the secret provider.

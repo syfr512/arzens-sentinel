@@ -54,3 +54,7 @@
 - [x] Add a repository-safe local and production configuration template that concretely maps keys, sources, validation expectations, and secret-handling boundaries.
 - [x] Add an explicit GitHub release and handoff checklist covering CI, security review, deployment prerequisites, release notes, and publication steps.
 - [x] Save the final GitHub-ready release checkpoint after the completed verification gate.
+- [x] Correct the production environment validation so managed runtime secrets are accepted without removing required-key or endpoint checks.
+- [x] Add regression coverage for the managed production secret validation path and retain failure coverage for missing or insecure settings.
+- [x] Rebuild and verify the production startup path before saving a corrected deployment checkpoint.
+- [ ] Save the corrected post-deployment-fix checkpoint and reference it in the deployment follow-up.

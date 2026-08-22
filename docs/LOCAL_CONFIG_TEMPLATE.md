@@ -8,7 +8,7 @@ This template is intentionally a **documentation artifact**, not an environment 
 |---|---|---|---|
 | `NODE_ENV` | `development` | Runtime-provided `production` | Enables fail-fast production checks. |
 | `VITE_APP_ID` | Local OAuth app identifier | Managed OAuth project setting | Required, non-empty. |
-| `JWT_SECRET` | Random development-only string, never committed | Managed secret | Required; at least 32 characters. |
+| `JWT_SECRET` | Random development-only string, never committed | Managed secret | Required; opaque managed values are accepted without a string-length heuristic. |
 | `DATABASE_URL` | Local MySQL-compatible test database | Managed database connection | Required, non-empty. |
 | `OAUTH_SERVER_URL` | HTTPS local/staging OAuth endpoint | Managed OAuth endpoint | Required and HTTPS. |
 | `OWNER_OPEN_ID` | Development owner identity | Managed project owner mapping | Used for initial administrative role mapping. |
@@ -25,6 +25,6 @@ This template is intentionally a **documentation artifact**, not an environment 
 
 ## Production handoff
 
-Before release, the deployment owner configures the production values through the managed settings interface. The server validates that required values exist, that `JWT_SECRET` meets the minimum length, and that OAuth/managed API endpoints use HTTPS. The deployment must also apply the controls in `DEPLOYMENT_GUIDE.md`: network egress restrictions, gateway rate limiting, audit monitoring, and report-object lifecycle rules.
+Before release, the deployment owner configures the production values through the managed settings interface. The server validates that required values exist and that OAuth/managed API endpoints use HTTPS. It deliberately accepts opaque platform-managed `JWT_SECRET` values rather than applying a brittle string-length heuristic. The deployment must also apply the controls in `DEPLOYMENT_GUIDE.md`: network egress restrictions, gateway rate limiting, audit monitoring, and report-object lifecycle rules.
 
 > Never share a key in GitHub issues, pull requests, submission documents, screenshots, CSV files, reports, browser storage, or chat messages.

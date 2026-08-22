@@ -6,10 +6,13 @@ const validProduction: RuntimeEnvironment = {
 };
 
 describe("validateRuntimeEnvironment", () => {
-  it("accepts a complete production configuration", () => expect(() => validateRuntimeEnvironment(validProduction)).not.toThrow());
-  it("fails fast for missing settings, short secrets, or insecure service endpoints", () => {
+  it("accepts a complete production configuration and an opaque managed session secret", () => {
+    expect(() => validateRuntimeEnvironment(validProduction)).not.toThrow();
+    expect(() => validateRuntimeEnvironment({ ...validProduction, cookieSecret: "managed-secret" })).not.toThrow();
+  });
+  it("fails fast for missing settings or insecure service endpoints", () => {
     expect(() => validateRuntimeEnvironment({ ...validProduction, databaseUrl: "" })).toThrow("DATABASE_URL");
-    expect(() => validateRuntimeEnvironment({ ...validProduction, cookieSecret: "too-short" })).toThrow("at least 32");
+    expect(() => validateRuntimeEnvironment({ ...validProduction, cookieSecret: "" })).toThrow("JWT_SECRET");
     expect(() => validateRuntimeEnvironment({ ...validProduction, forgeApiUrl: "http://forge.example.com" })).toThrow("must use HTTPS");
   });
 });

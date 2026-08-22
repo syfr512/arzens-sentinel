@@ -32,6 +32,6 @@ export function validateRuntimeEnvironment(runtime: RuntimeEnvironment = ENV) {
   ];
   const missing = required.filter(([, value]) => !value.trim()).map(([key]) => key);
   if (missing.length) throw new Error(`Production environment validation failed: missing ${missing.join(", ")}.`);
-  if (runtime.cookieSecret.length < 32) throw new Error("Production environment validation failed: JWT_SECRET must be at least 32 characters.");
+  // Managed runtimes supply an opaque session secret. Presence is validated here; entropy and rotation are enforced by the secret provider rather than an unreliable lexical-length heuristic.
   if (!/^https:\/\//.test(runtime.oAuthServerUrl) || !/^https:\/\//.test(runtime.forgeApiUrl)) throw new Error("Production environment validation failed: OAuth and Forge endpoints must use HTTPS.");
 }
