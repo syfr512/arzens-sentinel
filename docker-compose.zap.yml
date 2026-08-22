@@ -1,0 +1,15 @@
+services:
+  zap-baseline:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    network_mode: host
+    volumes:
+      - ./zap-output:/zap/wrk:rw
+    command: >
+      zap-baseline.py -t http://127.0.0.1:3000
+      -J /zap/wrk/zap-report.json
+      -r /zap/wrk/zap-report.html
+      -I
+
+# Local-lab use only. The default target is loopback and exists solely for a
+# developer-controlled application. Do not substitute an external host without
+# written authorization. Import JSON alerts through server/scanner/zap.ts.

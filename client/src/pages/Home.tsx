@@ -1,33 +1,19 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState, ErrorState, LoadingState, MetricCard, PageHeader, RiskRing, SectionTitle, SeverityBadge } from "@/components/security-ui";
+import { trpc } from "@/lib/trpc";
+import { Activity, ArrowRight, FileWarning, Play, Radar, ScanLine, ShieldCheck } from "lucide-react";
+import { useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const scans = trpc.scans.list.useQuery();
+  const runDemo = trpc.scans.runDemo.useMutation();
+  const [, setLocation] = useLocation();
+  const rows = scans.data || [];
+  const openFindings = rows.reduce((sum, scan) => sum + scan.findingCount, 0);
+  const latestScore = rows[0] ? rows[0].riskScore / 10 : 0;
+  const handleDemo = () => runDemo.mutate(undefined, { onSuccess: ({ scanId }) => setLocation(`/scans/${scanId}`) });
+  if (scans.isLoading) return <LoadingState label="Loading security posture"/>;
+  if (scans.error) return <ErrorState message={scans.error.message} retry={() => scans.refetch()}/>;
+  return <div className="space-y-7"><PageHeader eyebrow="Security operations / Overview" title="Make risk review feel deliberate." description="Run bounded assessments, investigate redacted evidence, and keep remediation decisions traceable from first signal to export." action={<Button onClick={handleDemo} disabled={runDemo.isPending} className="btn-amber"><Play className="h-4 w-4"/>{runDemo.isPending ? "Preparing demo" : "Run Demo Scan"}</Button>}/><section className="metric-grid"><MetricCard label="Assessments" value={rows.length} helper="in this workspace" icon={Radar} accent="cyan"/><MetricCard label="Open signals" value={openFindings} helper="deduplicated findings" icon={FileWarning} accent="red"/><MetricCard label="Current posture" value={latestScore ? `${latestScore.toFixed(1)}/10` : "—"} helper={latestScore ? "latest assessment score" : "no assessment yet"} icon={Activity}/><MetricCard label="Safeguards" value="100%" helper="passive profile enforced" icon={ShieldCheck} accent="lime"/></section><section className="dashboard-grid"><Card className="hero-posture"><CardContent className="p-7"><div><p className="eyebrow">Current posture</p><h2>{rows.length ? "Evidence first. Context second." : "Your workspace is ready."}</h2><p>{rows.length ? "Risk scoring stays explainable: every score preserves its impact, exploitability, evidence, and original severity." : "Start with a fixture-backed demonstration, or create a bounded assessment for a system you are authorized to test."}</p><div className="flex flex-wrap gap-3"><Button onClick={() => setLocation("/new-scan")}>New assessment <ArrowRight className="h-4 w-4"/></Button><Button variant="outline" onClick={() => setLocation("/methodology")}>Review methodology</Button></div></div><RiskRing score={latestScore}/></CardContent></Card><Card className="trust-card"><CardContent className="p-6"><p className="eyebrow">Guardrails</p><h3>Designed for authorized use.</h3><div className="guardrail-list"><div><span>01</span><p>Private, loopback, link-local, metadata, and redirect-bypass targets are rejected.</p></div><div><span>02</span><p>Response limits and same-origin boundaries reduce scanner footprint.</p></div><div><span>03</span><p>Values resembling credentials are redacted before storage or AI guidance.</p></div></div></CardContent></Card></section><section className="panel-section"><SectionTitle title="Recent assessments" description="Your last 50 user-owned assessment records, ordered by completion." action={<Button variant="ghost" size="sm" onClick={() => setLocation("/history")}>View history <ArrowRight className="h-3.5 w-3.5"/></Button>}/>{rows.length ? <div className="recent-list">{rows.slice(0, 5).map(scan => <button className="recent-row" key={scan.id} onClick={() => setLocation(`/scans/${scan.id}`)}><div className="recent-target"><span className="recent-icon"><ScanLine className="h-4 w-4"/></span><div><strong>{scan.targetUrl}</strong><p>{new Date(scan.createdAt).toLocaleString()} · {scan.endpointCount} endpoint{scan.endpointCount === 1 ? "" : "s"}</p></div></div><div className="recent-right"><span className="score-chip">{(scan.riskScore / 10).toFixed(1)}</span><SeverityBadge severity={scan.overallSeverity}/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div></button>)}</div> : <EmptyState title="No assessments yet" description="Use the one-click Demo Scan to explore an end-to-end review without contacting a third-party system." action={{ label: "Run Demo Scan", onClick: handleDemo }}/>}</section></div>;
 }

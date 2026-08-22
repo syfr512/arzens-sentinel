@@ -1,0 +1,8 @@
+{
+  "alert": "Content Security Policy (CSP) Header Not Set",
+  "riskcode": "2",
+  "confidence": "High",
+  "url": "https://lab.example.test/",
+  "evidence": "content-security-policy header absent",
+  "reference": "https://developer.mozilla.org/docs/Web/HTTP/CSP"
+}

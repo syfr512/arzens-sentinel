@@ -1,0 +1,25 @@
+# Project TODO
+
+- [x] Establish the dark, refined security-operations design system, authenticated dashboard shell, route structure, and accessible responsive states.
+- [x] Build overview metrics, scan history, scan detail, findings review, remediation, report controls, methodology, and account views.
+- [x] Add a one-click seeded Demo Scan that uses only safe local fixtures and never contacts third-party systems.
+- [x] Implement a bounded HTTP(S) scanner core with URL validation, redirect-safe SSRF blocking, same-origin discovery, request/page/response limits, and redacted evidence capture.
+- [x] Implement safe-passive checks for security headers, TLS/redirects, cookies, CORS, mixed content, and server disclosure.
+- [x] Enforce Safe Passive as the default profile and document Active Lab as local-only, authorized, non-destructive canary testing.
+- [x] Create the rule catalog, stable finding IDs, deduplication, explainable CVSS-inspired scoring, severity rationale, filters, reviewer status, notes, and non-destructive severity overrides.
+- [x] Persist user-owned scans, targets, endpoints, findings, remediation recommendations, activity history, and report metadata with ownership enforcement.
+- [x] Add server-side, strict-schema AI remediation guidance with normalized evidence, deterministic fallbacks, advisory labels, and no automatic patch application.
+- [x] Generate redacted JSON, HTML, and print-ready PDF reports with scope, methodology, risk, evidence, remediation, limitations, and responsible-use disclosure.
+- [x] Add the local CLI using the shared scanner core, safe limits, report output, formats, and configurable severity-threshold exit codes.
+- [x] Add a local-only OWASP ZAP adapter boundary with fixture-tested alert normalization and authorization guidance.
+- [x] Create comprehensive automated tests, demo/sample artifacts, architecture documentation, threat model, responsible-use policy, and portfolio README.
+- [x] Securely store report artifacts outside the database and retain retrievable metadata for each scan.
+- [x] Verify type safety, tests, database migrations, application build, browser flows, responsive states, ownership enforcement, SSRF protections, redaction, and report exports.
+- [x] Capture final preview evidence, review all TODO items, save a project checkpoint, and prepare the submission-ready delivery.
+- [x] Add a dedicated account/settings view and route for authenticated workspace information and security boundaries.
+- [x] Extend findings review filters to include status, category, endpoint text, and confidence in addition to severity.
+- [x] Add ownership-isolation and protected-procedure coverage for scan, finding, remediation, and report operations.
+- [x] Run and document an authenticated Demo Scan, finding-review, remediation, and report-export browser workflow verification.
+- [x] Re-review closeout tasks after completing remaining account, filtering, test, and authenticated-flow work, then save the final checkpoint.
+- [x] Add explicit foreign-ownership procedure tests for finding update, remediation generation, and report artifact generation.
+- [x] Complete an authenticated in-browser Demo Scan to finding review, remediation, and report-export verification, or document the login limitation precisely.

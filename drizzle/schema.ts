@@ -1,17 +1,7 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -22,7 +12,89 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const scanTargets = mysqlTable("scan_targets", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  userId: int("userId").notNull(),
+  normalizedUrl: varchar("normalizedUrl", { length: 2048 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [index("scan_targets_user_url_idx").on(table.userId, table.normalizedUrl)]);
+
+export const scanRuns = mysqlTable("scan_runs", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  userId: int("userId").notNull(),
+  targetId: varchar("targetId", { length: 32 }).notNull(),
+  targetUrl: varchar("targetUrl", { length: 2048 }).notNull(),
+  profile: mysqlEnum("profile", ["safe_passive", "active_lab"]).default("safe_passive").notNull(),
+  status: mysqlEnum("status", ["queued", "running", "completed", "failed"]).default("queued").notNull(),
+  riskScore: int("riskScore").default(0).notNull(),
+  overallSeverity: mysqlEnum("overallSeverity", ["critical", "high", "medium", "low", "informational"]).default("informational").notNull(),
+  endpointCount: int("endpointCount").default(0).notNull(),
+  findingCount: int("findingCount").default(0).notNull(),
+  errorMessage: text("errorMessage"),
+  startedAt: timestamp("startedAt"),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("scan_runs_user_created_idx").on(table.userId, table.createdAt)]);
+
+export const scanEndpoints = mysqlTable("scan_endpoints", {
+  id: varchar("id", { length: 40 }).primaryKey(),
+  scanId: varchar("scanId", { length: 32 }).notNull(),
+  url: varchar("url", { length: 2048 }).notNull(),
+  statusCode: int("statusCode").notNull(),
+  contentType: varchar("contentType", { length: 255 }),
+  discoveredBy: varchar("discoveredBy", { length: 32 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("scan_endpoints_scan_idx").on(table.scanId)]);
+
+export const findings = mysqlTable("findings", {
+  id: varchar("id", { length: 80 }).primaryKey(),
+  scanId: varchar("scanId", { length: 32 }).notNull(),
+  ruleId: varchar("ruleId", { length: 32 }).notNull(),
+  title: varchar("title", { length: 512 }).notNull(),
+  category: varchar("category", { length: 128 }).notNull(),
+  severity: mysqlEnum("severity", ["critical", "high", "medium", "low", "informational"]).notNull(),
+  originalSeverity: mysqlEnum("originalSeverity", ["critical", "high", "medium", "low", "informational"]).notNull(),
+  scoreTenth: int("scoreTenth").notNull(),
+  confidence: mysqlEnum("confidence", ["high", "medium", "low"]).notNull(),
+  endpoint: varchar("endpoint", { length: 2048 }).notNull(),
+  evidence: text("evidence").notNull(),
+  rationale: json("rationale").notNull(),
+  reference: varchar("reference", { length: 1024 }).notNull(),
+  remediation: text("remediation").notNull(),
+  status: mysqlEnum("status", ["open", "in_review", "accepted_risk", "remediated"]).default("open").notNull(),
+  reviewerNote: text("reviewerNote"),
+  severityOverrideNote: text("severityOverrideNote"),
+  source: mysqlEnum("source", ["native", "zap", "demo"]).default("native").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [index("findings_scan_idx").on(table.scanId), index("findings_rule_endpoint_idx").on(table.scanId, table.ruleId)]);
+
+export const remediationRecommendations = mysqlTable("remediation_recommendations", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  scanId: varchar("scanId", { length: 32 }).notNull(),
+  findingId: varchar("findingId", { length: 80 }).notNull(),
+  source: mysqlEnum("source", ["deterministic", "ai"]).notNull(),
+  guidance: json("guidance").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("remediation_finding_idx").on(table.findingId)]);
+
+export const scanEvents = mysqlTable("scan_events", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  scanId: varchar("scanId", { length: 32 }).notNull(),
+  label: varchar("label", { length: 128 }).notNull(),
+  detail: text("detail").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("scan_events_scan_idx").on(table.scanId)]);
+
+export const reportArtifacts = mysqlTable("report_artifacts", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  scanId: varchar("scanId", { length: 32 }).notNull(),
+  format: mysqlEnum("format", ["json", "html", "pdf"]).notNull(),
+  storageKey: varchar("storageKey", { length: 512 }).notNull(),
+  url: varchar("url", { length: 1024 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [index("report_artifacts_scan_idx").on(table.scanId)]);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// TODO: Add your tables here

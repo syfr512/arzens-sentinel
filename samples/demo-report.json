@@ -1,0 +1,148 @@
+{
+  "generatedAt": "2026-08-22T10:33:23.810Z",
+  "responsibleUse": "This bounded assessment is advisory. It does not prove exploitability and must be used only for authorized targets.",
+  "scope": {
+    "target": "https://demo.arzens.example",
+    "profile": "safe_passive",
+    "endpointCount": 5
+  },
+  "riskSummary": {
+    "score": 4.8,
+    "severity": "medium",
+    "findingCount": 5
+  },
+  "methodology": [
+    "Strict target/redirect safety validation",
+    "Bounded same-origin discovery",
+    "Safe-passive header, cookie, CORS, transport, content, and disclosure inspection",
+    "Evidence redaction before persistence and report generation"
+  ],
+  "findings": [
+    {
+      "id": "ARS-CORS-001-demo-api",
+      "ruleId": "ARS-CORS-001",
+      "title": "Permissive CORS origin policy detected",
+      "category": "Cross-Origin Controls",
+      "severity": "medium",
+      "originalSeverity": "medium",
+      "score": 5.6,
+      "confidence": "high",
+      "endpoint": "https://demo.arzens.example/api/public/catalog",
+      "evidence": "Access-Control-Allow-Origin: *\nAccess-Control-Allow-Credentials: false\nEvidence fixture contains no customer data.",
+      "rationale": {
+        "impact": 6,
+        "exploitability": 5,
+        "score": 5.6,
+        "explanation": "Impact 6/10 and exploitability 5/10 produce the documented 5.6/10 assessment score."
+      },
+      "reference": "https://developer.mozilla.org/docs/Web/HTTP/Guides/CORS",
+      "remediation": "Replace wildcard origins with a minimal explicit allowlist and do not combine wildcard origins with credentialed requests.",
+      "status": "open",
+      "source": "demo",
+      "scoreTenth": 56,
+      "reviewerNote": null
+    },
+    {
+      "id": "ARS-HEAD-001-demo-home",
+      "ruleId": "ARS-HEAD-001",
+      "title": "Content Security Policy is not configured",
+      "category": "Security Headers",
+      "severity": "medium",
+      "originalSeverity": "medium",
+      "score": 5.6,
+      "confidence": "high",
+      "endpoint": "https://demo.arzens.example/",
+      "evidence": "Content-Security-Policy header absent in the fixture response.\nserver: DemoGateway/1.0",
+      "rationale": {
+        "impact": 6,
+        "exploitability": 5,
+        "score": 5.6,
+        "explanation": "Impact 6/10 and exploitability 5/10 produce the documented 5.6/10 assessment score."
+      },
+      "reference": "https://developer.mozilla.org/docs/Web/HTTP/CSP",
+      "remediation": "Define a restrictive Content-Security-Policy and tune it using report-only mode before enforcement.",
+      "status": "open",
+      "source": "demo",
+      "scoreTenth": 56,
+      "reviewerNote": null
+    },
+    {
+      "id": "ARS-COOKIE-002-demo-home",
+      "ruleId": "ARS-COOKIE-002",
+      "title": "Cookie lacks the HttpOnly attribute",
+      "category": "Session Security",
+      "severity": "medium",
+      "originalSeverity": "medium",
+      "score": 5.6,
+      "confidence": "high",
+      "endpoint": "https://demo.arzens.example/signin",
+      "evidence": "Set-Cookie: session=[REDACTED]; Secure; SameSite=Lax\nHttpOnly flag absent in fixture.",
+      "rationale": {
+        "impact": 6,
+        "exploitability": 5,
+        "score": 5.6,
+        "explanation": "Impact 6/10 and exploitability 5/10 produce the documented 5.6/10 assessment score."
+      },
+      "reference": "https://developer.mozilla.org/docs/Web/HTTP/Cookies",
+      "remediation": "Mark session cookies HttpOnly unless browser-side JavaScript access is strictly required.",
+      "status": "open",
+      "source": "demo",
+      "scoreTenth": 56,
+      "reviewerNote": null
+    },
+    {
+      "id": "ARS-DISC-001-demo-api",
+      "ruleId": "ARS-DISC-001",
+      "title": "Technology disclosure header detected",
+      "category": "Information Disclosure",
+      "severity": "low",
+      "originalSeverity": "low",
+      "score": 3.4,
+      "confidence": "high",
+      "endpoint": "https://demo.arzens.example/api/health",
+      "evidence": "x-powered-by: Express\nFixture evidence has been normalized and redacted.",
+      "rationale": {
+        "impact": 3,
+        "exploitability": 4,
+        "score": 3.4,
+        "explanation": "Impact 3/10 and exploitability 4/10 produce the documented 3.4/10 assessment score."
+      },
+      "reference": "https://owasp.org/www-project-web-security-testing-guide/",
+      "remediation": "Remove or minimize framework and server disclosure headers where they are not operationally required.",
+      "status": "open",
+      "source": "demo",
+      "scoreTenth": 34,
+      "reviewerNote": null
+    },
+    {
+      "id": "ARS-HEAD-003-demo-home",
+      "ruleId": "ARS-HEAD-003",
+      "title": "MIME-sniffing protection is not configured",
+      "category": "Security Headers",
+      "severity": "medium",
+      "originalSeverity": "medium",
+      "score": 4,
+      "confidence": "high",
+      "endpoint": "https://demo.arzens.example/assets/app.js",
+      "evidence": "X-Content-Type-Options header absent in the fixture response.",
+      "rationale": {
+        "impact": 4,
+        "exploitability": 4,
+        "score": 4,
+        "explanation": "Impact 4/10 and exploitability 4/10 produce the documented 4/10 assessment score."
+      },
+      "reference": "https://developer.mozilla.org/docs/Web/HTTP/Headers/X-Content-Type-Options",
+      "remediation": "Return X-Content-Type-Options: nosniff with responses that declare correct Content-Type values.",
+      "status": "open",
+      "source": "demo",
+      "scoreTenth": 40,
+      "reviewerNote": null
+    }
+  ],
+  "limitations": [
+    "Unauthenticated assessment",
+    "No destructive payloads",
+    "No proof of exploitability",
+    "AI guidance is advisory and never auto-applied"
+  ]
+}
