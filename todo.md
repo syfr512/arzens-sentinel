@@ -57,4 +57,4 @@
 - [x] Correct the production environment validation so managed runtime secrets are accepted without removing required-key or endpoint checks.
 - [x] Add regression coverage for the managed production secret validation path and retain failure coverage for missing or insecure settings.
 - [x] Rebuild and verify the production startup path before saving a corrected deployment checkpoint.
-- [ ] Save the corrected post-deployment-fix checkpoint and reference it in the deployment follow-up.
+- [x] Save the corrected post-deployment-fix checkpoint and reference it in the deployment follow-up.
