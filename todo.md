@@ -53,4 +53,4 @@
 - [x] Add the controlled HTTP fixture and CSV artifact retrieval evidence to the verification record.
 - [x] Add a repository-safe local and production configuration template that concretely maps keys, sources, validation expectations, and secret-handling boundaries.
 - [x] Add an explicit GitHub release and handoff checklist covering CI, security review, deployment prerequisites, release notes, and publication steps.
-- [ ] Save the final GitHub-ready release checkpoint after the completed verification gate.
+- [x] Save the final GitHub-ready release checkpoint after the completed verification gate.
