@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertSafeTarget, redactEvidence, runSafePassiveScan, TargetSafetyError } from "./core";
+import { assertSafeTarget, redactEvidence, runSafePassiveScan, scannerHardLimits, TargetSafetyError } from "./core";
 import { getDemoScanResult } from "./demo";
 import { scoreFromFactors, severityFromScore } from "./rules";
 
@@ -14,6 +14,13 @@ describe("scanner safety boundaries", () => {
 
   it("enforces Safe Passive as the hosted profile", async () => {
     await expect(runSafePassiveScan("https://example.com", "active_lab")).rejects.toThrow("Active Lab checks");
+  });
+
+  it("enforces verified origin and path scope before outbound work", async () => {
+    await expect(assertSafeTarget("https://outside.example/path", { origin: "https://verified.example", scopePath: "/" })).rejects.toBeInstanceOf(TargetSafetyError);
+    await expect(assertSafeTarget("https://verified.example/outside", { origin: "https://verified.example", scopePath: "/app/" })).rejects.toBeInstanceOf(TargetSafetyError);
+    expect(scannerHardLimits.maxPages).toBe(10);
+    expect(scannerHardLimits.maxResponseBytes).toBe(1_000_000);
   });
 
   it("redacts bearer tokens, named secrets, and token-like values before evidence persists", () => {

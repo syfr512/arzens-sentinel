@@ -18,6 +18,7 @@ vi.mock("./db", () => ({
   persistScanResult: vi.fn(),
   storeRemediation: vi.fn(),
   storeReportArtifact: vi.fn(),
+  writeAuditEvent: vi.fn(),
 }));
 
 import { appRouter } from "./routers";

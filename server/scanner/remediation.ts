@@ -28,8 +28,8 @@ export function deterministicRemediation(finding: ScannerFinding): RemediationGu
   };
 }
 
-export async function generateRemediation(finding: ScannerFinding): Promise<RemediationGuidance> {
-  if (process.env.ENABLE_AI_REMEDIATION !== "true") return deterministicRemediation(finding);
+export async function generateRemediation(finding: ScannerFinding, options: { allowAi?: boolean } = {}): Promise<RemediationGuidance> {
+  if (process.env.ENABLE_AI_REMEDIATION !== "true" || options.allowAi === false) return deterministicRemediation(finding);
   try {
     const response = await invokeLLM({
       messages: [

@@ -1,0 +1,2 @@
+ALTER TABLE `target_authorizations` ADD `retentionDays` int DEFAULT 30 NOT NULL;--> statement-breakpoint
+ALTER TABLE `scan_runs` ADD CONSTRAINT `scan_runs_user_request_unique` UNIQUE(`userId`,`requestId`);

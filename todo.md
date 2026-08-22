@@ -23,3 +23,19 @@
 - [x] Re-review closeout tasks after completing remaining account, filtering, test, and authenticated-flow work, then save the final checkpoint.
 - [x] Add explicit foreign-ownership procedure tests for finding update, remediation generation, and report artifact generation.
 - [x] Complete an authenticated in-browser Demo Scan to finding review, remediation, and report-export verification, or document the login limitation precisely.
+- [x] Perform a professional security and live-readiness audit of the current application, scanner, API contracts, data boundaries, and deployment assumptions.
+- [x] Add live-assessment safeguards: explicit authorization records, target ownership verification workflow, scope constraints, domain allowlisting, and rate/concurrency controls.
+- [x] Harden scanner networking against advanced SSRF and crawl risks, including DNS-rebinding defenses, redirect protocol checks, response/content limits, and robust error telemetry.
+- [x] Add durable scan lifecycle management with queued/running/completed/failed states, structured progress events, cancellation controls, and retry-safe behavior.
+- [x] Add live-operational controls for target profiles, configurable safe limits, retention settings, audit logging, report access controls, and operator-visible security status.
+- [x] Add secure, server-only AI remediation readiness with built-in schema validation, daily cost guardrails, advisory labels, and deterministic fallback; no external OpenAI key is required for this release.
+- [x] Improve production readiness with security headers, CSP, structured logging, health/readiness endpoints, environment validation, dependency review, and deployment guidance.
+- [x] Expand automated coverage for the new live controls, scanner failure modes, authorization, ownership, retention, report access, and AI fallback behavior.
+- [x] Create a professional security-review report, updated threat model, live-testing runbook, and post-hardening verification record.
+- [x] Re-run production build and end-to-end verification, capture final live-readiness evidence, save a checkpoint, and deliver the hardened project.
+- [x] Implement idempotent/retry-safe live scan starts using the stored request ID and active-run lookup.
+- [x] Expose bounded per-target safe limits and retention selection in the authorization workflow, persist the policy, and enforce it for scans and reports.
+- [x] Add fail-fast runtime environment validation for required application and security configuration.
+- [x] Add automated tests for report-retention expiry, scan cancellation/failure lifecycle paths, AI budget fallback, and retry-safe scan-start behavior.
+- [x] Update the post-hardening verification record with the final build, header, readiness, browser, and production-audit evidence.
+- [ ] Save the verified post-hardening project checkpoint and reference it in the final delivery summary.

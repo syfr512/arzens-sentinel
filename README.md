@@ -20,17 +20,19 @@ The proposal’s Python/Streamlit/ZAP direction was valuable as a starting point
 
 ```mermaid
 flowchart LR
-  A[Run fixture Demo Scan or authorized Safe Passive assessment] --> B[Review redacted findings]
-  B --> C[Record status, notes, or severity override]
-  C --> D[Generate advisory remediation]
-  D --> E[Export JSON, HTML, or PDF report]
+  A[Run Demo Scan or issue HTTPS target proof] --> B[Verify origin and path scope]
+  B --> C[Run bounded Safe Passive assessment]
+  C --> D[Review redacted findings]
+  D --> E[Record status, notes, or severity override]
+  E --> F[Generate advisory remediation]
+  F --> G[Export JSON, HTML, or PDF report]
 ```
 
 ## Feature highlights
 
 The dashboard provides overview metrics, assessment history, a safe scan-creation flow, detailed findings review, severity filters, endpoint coverage, activity trail, report controls, methodology, and responsive accessible states. The Demo Scan is fixture-backed and does **not** target an external system.
 
-The scanner defaults to **Safe Passive**. It validates protocols, blocks private/loopback/link-local/reserved/metadata targets, re-validates redirects, bounds crawling, observes same-origin links, inspects headers/transport/cookies/CORS/mixed content/disclosure signals, and redacts sensitive-looking evidence before database, report, or AI use.
+The scanner defaults to **Safe Passive**. Live targets require an HTTPS `/.well-known/` proof file, a verified origin and path scope, policy snapshot, expiry, revocation path, and audit trail before an assessment begins. The transport validates protocols, blocks private/loopback/link-local/reserved/metadata and mixed-DNS targets, pins the validated DNS answer at connection time, re-validates redirects, bounds crawling and wall-clock duration, observes only in-scope links, and redacts sensitive-looking evidence before database, report, or AI use.
 
 ## Local quick start
 
@@ -41,7 +43,7 @@ pnpm test
 pnpm dev
 ```
 
-The managed web project supplies authentication, database credentials, and secure object storage. For the reviewer path, sign in and click **Run Demo Scan**.
+The managed web project supplies authentication, database credentials, and secure object storage. For the reviewer path, sign in and click **Run Demo Scan**. For authorized live testing, use **New assessment** to issue and verify a proof file before starting the bounded hosted scan.
 
 ## CLI
 
@@ -68,15 +70,15 @@ pnpm cli -- --target https://app.example.com --authorized --format pdf --max-pag
 
 The original assessment score remains visible if a reviewer applies a severity override, and every override requires an audit note. Findings, remediation guidance, reports, and target data are always queried with ownership checks.
 
-AI guidance is server-side and schema-validated. It is labeled **AI-generated / verify before applying** when enabled, returns to deterministic guidance if unavailable or invalid, and can never automatically apply a patch. The initial build uses deterministic fallback by default to keep demos reproducible and avoid unnecessary model cost.
+AI guidance is server-side and schema-validated. It is labeled **AI-generated / verify before applying** when enabled, returns to deterministic guidance if unavailable or invalid, and can never automatically apply a patch. The initial build uses deterministic fallback by default, so **no OpenAI API key is required**. Optional built-in AI guidance is server-only, advisory, and limited to 10 generations per workspace per day.
 
 ## Documentation
 
-Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT_MODEL.md), [responsible-use policy](docs/RESPONSIBLE_USE.md), [local ZAP adapter notes](docs/ZAP_LOCAL_LAB.md), and [verification record](docs/VERIFICATION.md) for the portfolio narrative, operational boundaries, and test evidence.
+Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT_MODEL.md), [responsible-use policy](docs/RESPONSIBLE_USE.md), [live-testing runbook](docs/LIVE_TESTING_RUNBOOK.md), [professional security review](docs/SECURITY_REVIEW.md), [local ZAP adapter notes](docs/ZAP_LOCAL_LAB.md), and [verification record](docs/VERIFICATION.md) for the portfolio narrative, operational boundaries, and test evidence.
 
 ## Verification status
 
-The Vitest suite covers scanner safety boundaries, redaction, score mapping, fixture-backed demo behavior, deterministic remediation, AI-off fallback, ZAP normalization, HTML/JSON/PDF report generation, and the template authentication logout behavior.
+The Vitest suite covers scanner safety boundaries, authorization scope, redaction, score mapping, fixture-backed demo behavior, deterministic remediation, AI-off fallback, verified-target enforcement, live-scan policy handoff, duplicate-run rejection, rate budgeting, owner-checked report retrieval, ZAP normalization, HTML/JSON/PDF report generation, and authentication logout behavior. The release validation also runs type checking, production build, readiness/header probes, and `pnpm audit --prod --audit-level high`.
 
 ## Professional limitations
 

@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   storeRemediation: vi.fn(),
   storagePut: vi.fn(),
   storeReportArtifact: vi.fn(),
+  writeAuditEvent: vi.fn(),
 }));
 
 vi.mock("./db", () => ({
@@ -17,6 +18,7 @@ vi.mock("./db", () => ({
   persistScanResult: mocks.persistScanResult,
   storeRemediation: mocks.storeRemediation,
   storeReportArtifact: mocks.storeReportArtifact,
+  writeAuditEvent: mocks.writeAuditEvent,
   updateOwnedFinding: vi.fn(),
   listRemediation: vi.fn(),
 }));

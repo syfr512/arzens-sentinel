@@ -15,6 +15,20 @@
       "when": 1787394201380,
       "tag": "0001_little_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787396147224,
+      "tag": "0002_overjoyed_proudstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787397636781,
+      "tag": "0003_futuristic_power_man",
+      "breakpoints": true
     }
   ]
 }
