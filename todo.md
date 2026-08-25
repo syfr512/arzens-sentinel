@@ -70,4 +70,6 @@
 - [x] Harden managed database initialization and health/readiness behavior so a transient database issue cannot strand the public application on the maintenance page.
 - [x] Harden production database initialization with an explicit managed MySQL pool, non-secret diagnostics, and a lightweight connectivity check.
 - [ ] Redeploy and verify the public domain returns HTTP 200 for `/healthz`, `/readyz`, and the application root without the maintenance page.
+- [x] Add and verify a non-reserved application health endpoint for external monitoring when the platform intercepts `/healthz`.
+- [ ] Redeploy and verify `/api/health`, `/readyz`, and `/` on the public domain, then record the external monitoring evidence.
 - [ ] Verify the corrected deployed domain returns HTTP 200 for health, readiness, and the public application after redeployment.

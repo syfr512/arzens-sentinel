@@ -51,7 +51,10 @@ async function startServer() {
     res.on("finish", () => { console.info(JSON.stringify({ event: "http.request", requestId, method: req.method, path: req.path, status: res.statusCode, durationMs: Date.now() - started })); });
     next();
   });
-  app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok" }));
+  const healthPayload = (_req: express.Request, res: express.Response) => res.status(200).json({ status: "ok" });
+  app.get("/healthz", healthPayload);
+  // Some managed gateways reserve /healthz for their own lifecycle signal; use this route for external application monitoring.
+  app.get("/api/health", healthPayload);
   app.get("/readyz", async (_req, res) => {
     const database = await getDatabaseHealth();
     // This endpoint answers process readiness for the managed platform. A transient database

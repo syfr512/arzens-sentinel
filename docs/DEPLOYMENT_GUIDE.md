@@ -27,7 +27,7 @@
 
 ## Health verification
 
-Use `/healthz` for a process probe and `/readyz` for a process-readiness payload. Both endpoints return HTTP 200 after deployment. The readiness payload reports database availability as `ready` or `degraded`, so a transient dependency signal does not cause the managed platform to route the complete public application to a maintenance page. Protected assessment procedures continue to fail closed if the database is unavailable.
+Use `/api/health` for external application monitoring and `/readyz` for a process-readiness payload. Both endpoints return HTTP 200 after deployment. The platform may reserve `/healthz` for its own lifecycle signal, so the application also exposes the non-reserved `/api/health` route. The readiness payload reports database availability as `ready` or `degraded`, so a transient dependency signal does not cause the managed platform to route the complete public application to a maintenance page. Protected assessment procedures continue to fail closed if the database is unavailable.
 
 ## GitHub handoff
 
