@@ -74,7 +74,7 @@ AI guidance is server-side and schema-validated. It is labeled **AI-generated / 
 
 ## Documentation
 
-Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT_MODEL.md), [responsible-use policy](docs/RESPONSIBLE_USE.md), [live-testing runbook](docs/LIVE_TESTING_RUNBOOK.md), [controlled-lab protocol](docs/CONTROLLED_LAB.md), [professional security review](docs/SECURITY_REVIEW.md), [submission report](docs/SUBMISSION_REPORT.md), [deployment decision guide](docs/DEPLOYMENT_GUIDE.md), [configuration template](docs/LOCAL_CONFIG_TEMPLATE.md), [GitHub release checklist](docs/GITHUB_RELEASE_CHECKLIST.md), [local ZAP adapter notes](docs/ZAP_LOCAL_LAB.md), and [verification record](docs/VERIFICATION.md) for the portfolio narrative, operational boundaries, and test evidence.
+Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT_MODEL.md), [responsible-use policy](docs/RESPONSIBLE_USE.md), [live-testing runbook](docs/LIVE_TESTING_RUNBOOK.md), [reviewer live-testing guide](docs/LIVE_TESTING_GUIDE.md), [controlled-lab protocol](docs/CONTROLLED_LAB.md), [professional security review](docs/SECURITY_REVIEW.md), [submission report](docs/SUBMISSION_REPORT.md), [deployment decision guide](docs/DEPLOYMENT_GUIDE.md), [configuration template](docs/LOCAL_CONFIG_TEMPLATE.md), [GitHub release checklist](docs/GITHUB_RELEASE_CHECKLIST.md), [local ZAP adapter notes](docs/ZAP_LOCAL_LAB.md), and [verification record](docs/VERIFICATION.md) for the portfolio narrative, operational boundaries, and test evidence.
 
 ## Verification status
 

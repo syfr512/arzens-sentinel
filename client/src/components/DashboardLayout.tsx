@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
+import { resolveQueryViewState } from "@/lib/queryState";
 import { BookOpen, ChevronRight, FileText, Gauge, History, LogOut, Plus, ScanLine, Settings2, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
@@ -20,8 +21,16 @@ const menuItems = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { loading, user } = useAuth();
-  if (loading) return <DashboardLayoutSkeleton />;
+  const { loading, user, error, refresh } = useAuth();
+  const [authTimedOut, setAuthTimedOut] = useState(false);
+  useEffect(() => {
+    if (!loading) { setAuthTimedOut(false); return; }
+    const timer = window.setTimeout(() => setAuthTimedOut(true), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+  const authState = resolveQueryViewState({ isLoading: loading, hasData: Boolean(user), hasError: Boolean(error), timedOut: authTimedOut });
+  if (authState === "loading") return <DashboardLayoutSkeleton />;
+  if (authState === "timeout" || authState === "error") return <div className="auth-shell"><div className="auth-grid"/><div className="auth-card"><div className="brand-mark"><ShieldCheck className="h-6 w-6" /></div><p className="eyebrow">Arzens Sentinel</p><h1>Workspace check needs a retry.</h1><p>{authState === "timeout" ? "The secure session check is taking longer than expected. No assessment request has been started." : "The secure session check could not be completed. Retry to reconnect."}</p><Button onClick={() => { setAuthTimedOut(false); refresh(); }} size="lg" className="w-full">Retry secure check <ChevronRight className="h-4 w-4" /></Button></div></div>;
   if (!user) return <div className="auth-shell"><div className="auth-grid"/><div className="auth-card"><div className="brand-mark"><ShieldCheck className="h-6 w-6" /></div><p className="eyebrow">Arzens Sentinel</p><h1>Authorized assessment, made legible.</h1><p>Sign in to run bounded web-security assessments, review redacted evidence, and export advisory remediation reports.</p><Button onClick={() => startLogin()} size="lg" className="w-full">Sign in to workspace <ChevronRight className="h-4 w-4" /></Button><p className="auth-note">Safe Passive is enforced by default. Demo scans use fixtures only.</p></div></div>;
   return <SidebarProvider defaultOpen><DashboardChrome>{children}</DashboardChrome></SidebarProvider>;
 }

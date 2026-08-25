@@ -2,14 +2,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState, ErrorState, LoadingState, MetricCard, PageHeader, RiskRing, SectionTitle, SeverityBadge } from "@/components/security-ui";
 import { trpc } from "@/lib/trpc";
+import { resolveQueryViewState } from "@/lib/queryState";
 import { Activity, ArrowRight, FileWarning, Play, Radar, ScanLine, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
 export default function Home() {
   const scans = trpc.scans.list.useQuery();
   const runDemo = trpc.scans.runDemo.useMutation();
   const [, setLocation] = useLocation();
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  useEffect(() => {
+    if (!scans.isLoading || scans.data) { setLoadTimedOut(false); return; }
+    const timer = window.setTimeout(() => setLoadTimedOut(true), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [scans.isLoading, scans.data]);
   const rows = scans.data || [];
+  const queryState = resolveQueryViewState({ isLoading: scans.isLoading, hasData: Boolean(scans.data), hasError: Boolean(scans.error), timedOut: loadTimedOut });
   const openFindings = rows.reduce((sum, scan) => sum + scan.findingCount, 0);
   const latestScore = rows[0] ? rows[0].riskScore / 10 : 0;
   const latest = rows[0];
@@ -17,7 +26,8 @@ export default function Home() {
   const trendDelta = latest && priorForTarget ? Math.round(((latest.riskScore - priorForTarget.riskScore) / 10) * 10) / 10 : null;
   const trendHelper = trendDelta === null ? (latestScore ? "first completed assessment" : "no assessment yet") : trendDelta === 0 ? "unchanged from prior run" : `${trendDelta > 0 ? "+" : ""}${trendDelta.toFixed(1)} vs prior same-target run`;
   const handleDemo = () => runDemo.mutate(undefined, { onSuccess: ({ scanId }) => setLocation(`/scans/${scanId}`) });
-  if (scans.isLoading) return <LoadingState label="Loading security posture"/>;
-  if (scans.error) return <ErrorState message={scans.error.message} retry={() => scans.refetch()}/>;
+  if (queryState === "loading") return <LoadingState label="Loading security posture"/>;
+  if (queryState === "timeout") return <ErrorState message="The workspace is taking longer than expected to respond. Your assessment data has not been changed." retry={() => { setLoadTimedOut(false); scans.refetch(); }}/>;
+  if (queryState === "error") return <ErrorState message={scans.error?.message || "The workspace could not be loaded."} retry={() => { setLoadTimedOut(false); scans.refetch(); }}/>;
   return <div className="space-y-7"><PageHeader eyebrow="Security operations / Overview" title="Make risk review feel deliberate." description="Run bounded assessments, investigate redacted evidence, and keep remediation decisions traceable from first signal to export." action={<Button onClick={handleDemo} disabled={runDemo.isPending} className="btn-amber"><Play className="h-4 w-4"/>{runDemo.isPending ? "Preparing demo" : "Run Demo Scan"}</Button>}/><section className="metric-grid"><MetricCard label="Assessments" value={rows.length} helper="in this workspace" icon={Radar} accent="cyan"/><MetricCard label="Open signals" value={openFindings} helper="deduplicated findings" icon={FileWarning} accent="red"/><MetricCard label="Current posture" value={latestScore ? `${latestScore.toFixed(1)}/10` : "—"} helper={trendHelper} icon={Activity}/><MetricCard label="Safeguards" value="100%" helper="passive profile enforced" icon={ShieldCheck} accent="lime"/></section><section className="dashboard-grid"><Card className="hero-posture"><CardContent className="p-7"><div><p className="eyebrow">Current posture</p><h2>{rows.length ? "Evidence first. Context second." : "Your workspace is ready."}</h2><p>{rows.length ? `${priorForTarget ? `Latest same-target change: ${trendDelta === 0 ? "no score movement" : `${trendDelta && trendDelta > 0 ? "increased" : "decreased"} by ${Math.abs(trendDelta || 0).toFixed(1)}.`} ` : "No prior same-target assessment is available yet. "}Risk scoring stays explainable: every score preserves its impact, exploitability, evidence, and original severity.` : "Start with a fixture-backed demonstration, or create a bounded assessment for a system you are authorized to test."}</p><div className="flex flex-wrap gap-3"><Button onClick={() => setLocation("/new-scan")}>New assessment <ArrowRight className="h-4 w-4"/></Button><Button variant="outline" onClick={() => setLocation("/methodology")}>Review methodology</Button></div></div><RiskRing score={latestScore}/></CardContent></Card><Card className="trust-card"><CardContent className="p-6"><p className="eyebrow">Guardrails</p><h3>Designed for authorized use.</h3><div className="guardrail-list"><div><span>01</span><p>Private, loopback, link-local, metadata, and redirect-bypass targets are rejected.</p></div><div><span>02</span><p>Response limits and same-origin boundaries reduce scanner footprint.</p></div><div><span>03</span><p>Values resembling credentials are redacted before storage or AI guidance.</p></div></div></CardContent></Card></section><section className="panel-section"><SectionTitle title="Recent assessments" description="Your last 50 user-owned assessment records, ordered by completion." action={<Button variant="ghost" size="sm" onClick={() => setLocation("/history")}>View history <ArrowRight className="h-3.5 w-3.5"/></Button>}/>{rows.length ? <div className="recent-list">{rows.slice(0, 5).map(scan => <button className="recent-row" key={scan.id} onClick={() => setLocation(`/scans/${scan.id}`)}><div className="recent-target"><span className="recent-icon"><ScanLine className="h-4 w-4"/></span><div><strong>{scan.targetUrl}</strong><p>{new Date(scan.createdAt).toLocaleString()} · {scan.endpointCount} endpoint{scan.endpointCount === 1 ? "" : "s"}</p></div></div><div className="recent-right"><span className="score-chip">{(scan.riskScore / 10).toFixed(1)}</span><SeverityBadge severity={scan.overallSeverity}/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div></button>)}</div> : <EmptyState title="No assessments yet" description="Use the one-click Demo Scan to explore an end-to-end review without contacting a third-party system." action={{ label: "Run Demo Scan", onClick: handleDemo }}/>}</section></div>;
 }

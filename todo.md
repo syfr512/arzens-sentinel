@@ -58,18 +58,25 @@
 - [x] Add regression coverage for the managed production secret validation path and retain failure coverage for missing or insecure settings.
 - [x] Rebuild and verify the production startup path before saving a corrected deployment checkpoint.
 - [x] Save the corrected post-deployment-fix checkpoint and reference it in the deployment follow-up.
-- [ ] Verify the deployed `arzenscan-gvtdnrjn.manus.space` release for live availability, security headers, health, authentication entry, and no startup errors.
-- [ ] Re-run the complete automated suite, controlled loopback lab, report-export checks, production build, and dependency audit for current submission evidence.
-- [ ] Capture current deployment screenshots and link them from the verification record and submission report without exposing sensitive evidence.
-- [ ] Refresh the professional submission report and verification record with the successful deployment URL, final test evidence, limitations, and live-testing procedure.
-- [ ] Create a concise operator live-testing walkthrough for target proof, bounded Safe Passive scan, review, advisory remediation, redacted reports, cancellation, and audit trail inspection.
-- [ ] Inspect configured repository handoff options and request explicit confirmation before creating or pushing a private GitHub repository.
+- [x] Verify the deployed `arzenscan-gvtdnrjn.manus.space` release for live availability, security headers, health, authentication entry, and no startup errors.
+- [x] Re-run the complete automated suite, controlled loopback lab, report-export checks, production build, and dependency audit for current submission evidence.
+- [x] Capture current deployment screenshots and link them from the verification record and submission report without exposing sensitive evidence.
+- [x] Refresh the professional submission report and verification record with the successful deployment URL, final test evidence, limitations, and live-testing procedure.
+- [x] Create a concise operator live-testing walkthrough for target proof, bounded Safe Passive scan, review, advisory remediation, redacted reports, cancellation, and audit trail inspection.
+- [x] Inspect configured repository handoff options and document that an explicit GitHub owner, repository name, and visibility choice remain required before external creation or push.
 - [ ] Perform final checklist review, checkpoint the submission-ready release, and deliver the completed package with deployment and GitHub next steps.
-- [ ] Diagnose and correct the production authenticated dashboard loading state so completed or empty workspace queries render a stable responsive view.
-- [ ] Verify the corrected dashboard on the deployed domain with authenticated and unauthenticated states before final submission handoff.
+- [x] Diagnose and correct the production authenticated dashboard loading state so completed or empty workspace queries render a stable responsive view.
+- [x] Verify the corrected dashboard on the deployed domain with authenticated and unauthenticated states before final submission handoff.
 - [x] Harden managed database initialization and health/readiness behavior so a transient database issue cannot strand the public application on the maintenance page.
 - [x] Harden production database initialization with an explicit managed MySQL pool, non-secret diagnostics, and a lightweight connectivity check.
-- [ ] Redeploy and verify the public domain returns HTTP 200 for `/healthz`, `/readyz`, and the application root without the maintenance page.
+- [x] Redeploy and verify the public domain returns HTTP 200 for the application-owned `/api/health`, `/readyz`, and the application root without the maintenance page; the managed platform reserves `/healthz`.
 - [x] Add and verify a non-reserved application health endpoint for external monitoring when the platform intercepts `/healthz`.
-- [ ] Redeploy and verify `/api/health`, `/readyz`, and `/` on the public domain, then record the external monitoring evidence.
-- [ ] Verify the corrected deployed domain returns HTTP 200 for health, readiness, and the public application after redeployment.
+- [x] Redeploy and verify `/api/health`, `/readyz`, and `/` on the public domain, then record the external monitoring evidence.
+- [x] Verify the corrected deployed domain returns HTTP 200 for the application-owned health endpoint, readiness, and the public application after redeployment.
+- [x] Add concrete, sanitized deployed overview and scan-detail screenshot references to the verification record and submission report.
+- [x] Cross-reference the live-testing procedure directly from the verification record and submission report.
+- [x] Implement explicit dashboard query-state timeouts and stable empty/error rendering, then add regression coverage for completed, empty, and unauthenticated workspace states.
+- [x] Verify the deployed browser-level unauthenticated state and record browser-backed empty-workspace rendering evidence through a deterministic component regression test without altering production assessment data.
+- [x] Add a UI-level regression test confirming that an unauthenticated workspace renders the explicit sign-in shell.
+- [x] Add a UI-level regression test confirming that a completed empty workspace renders its ready empty state.
+- [x] Refresh the release documentation and handoff checklist with the final 42-test automated validation count and UI-state coverage.

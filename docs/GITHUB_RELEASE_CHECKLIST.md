@@ -13,7 +13,7 @@ This checklist prepares the repository for a controlled internship submission an
 ## Continuous integration gate
 
 - [ ] Enable the included **Quality Gate** workflow on pull requests and the default branch.
-- [ ] Require successful type checking, 38-test suite, production build, production dependency audit, and zero-network CSV fixture export before merge.
+- [ ] Require successful type checking, 42-test suite, production build, production dependency audit, and zero-network CSV fixture export before merge.
 - [ ] Enable Dependabot version and security updates.
 - [ ] Require code review for changes to scanner networking, authorization, report rendering, storage, database schema, or workflows.
 

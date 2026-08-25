@@ -47,11 +47,23 @@ The rule catalog now covers CSP absence and unsafe inline scripts, HSTS, MIME-sn
 
 ## Validation and evidence
 
-The completed validation suite contains **38 passing tests across 13 files**. It validates scanner safety, redaction, score mapping, ownership boundaries, target authorization, lifecycle states, retry-safe starts, cancellation, error handling, report access, structured remediation fallback, ZAP normalization, CSV protection, and environment validation.
+The completed validation suite contains **42 passing tests across 15 files**. It validates scanner safety, redaction, score mapping, ownership boundaries, target authorization, lifecycle states, retry-safe starts, cancellation, error handling, report access, structured remediation fallback, ZAP normalization, CSV protection, environment validation, and dashboard loading-state behavior—including the explicit unauthenticated sign-in shell and completed empty-workspace state.
 
 A real ephemeral HTTP server bound to `127.0.0.1` is created only during the automated test lifecycle. The shared scanner’s loopback exception is enabled only when the test process explicitly requests the controlled-lab mode; the hosted scanner and CLI still block loopback targets. This validated known safe-passive response signals without contacting a public vulnerable application.
 
 All four report types were generated through the zero-network CLI path. JSON contained methodology and responsible-use data; CSV contained redacted evidence and normalized columns; HTML included report sections; and PDF began with a valid `%PDF-1.4` signature. The CSV report test also verified persisted artifact metadata, owner-checked signed retrieval, and download auditing.
+
+## Deployed release evidence
+
+The final release is deployed at **[https://arzenscan-gvtdnrjn.manus.space](https://arzenscan-gvtdnrjn.manus.space)**. A live authenticated review confirmed that the operational overview, Safe Passive guardrails, Demo Scan control, history, reviewer queue, findings, report actions, and account navigation render from the deployed application. The existing fixture-backed Demo Scan displays five redacted findings across five bounded endpoints and exposes JSON, CSV, HTML, and PDF report controls.
+
+The external application probe returned HTTP 200 with `{"status":"ok"}` from `/api/health`; the dependency-aware readiness probe returned HTTP 200 with `{"status":"ready","database":true}` from `/readyz`; and the root served the application without a maintenance response. The live response also included HSTS, CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and a request correlation ID. The managed hosting layer reserves `/healthz`; therefore, `/api/health` is the documented application-owned external health endpoint.
+
+![Authenticated deployed overview](https://arzenscan-gvtdnrjn.manus.space/manus-storage/arzens-sentinel-overview_fc994c71.png)
+
+![Fixture-backed assessment detail](https://arzenscan-gvtdnrjn.manus.space/manus-storage/arzens-sentinel-demo-scan-detail_d4f7c09d.png)
+
+The step-by-step evaluator procedure is documented in the [Live Testing Guide](LIVE_TESTING_GUIDE.md). It explains the safe zero-network Demo Scan first, then the authorization proof and bounded Safe Passive workflow for a target that the operator controls or is formally authorized to assess.
 
 ## Professional limitations
 
