@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql, { type Pool } from "mysql2";
 import { nanoid } from "nanoid";
 import {
   auditEvents,
@@ -20,12 +21,34 @@ import { ENV } from "./_core/env";
 const DEFAULT_RETENTION_DAYS = 30;
 const AUTHORIZATION_DAYS = 30;
 let _db: ReturnType<typeof drizzle> | null = null;
+let _pool: Pool | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
-    try { _db = drizzle(process.env.DATABASE_URL); } catch (error) { console.warn("[Database] Failed to connect:", error); _db = null; }
+    try {
+      _pool ??= mysql.createPool(process.env.DATABASE_URL);
+      _db = drizzle(_pool);
+      console.info(JSON.stringify({ event: "database.initialized", configured: true }));
+    } catch {
+      console.warn(JSON.stringify({ event: "database.initialization_failed", configured: true }));
+      _pool = null;
+      _db = null;
+    }
   }
   return _db;
+}
+
+/** Performs a bounded dependency probe without exposing credentials or connection details. */
+export async function getDatabaseHealth() {
+  const db = await getDb();
+  if (!db || !_pool) return false;
+  try {
+    await _pool.promise().query("SELECT 1");
+    return true;
+  } catch {
+    console.warn(JSON.stringify({ event: "database.connectivity_failed", configured: true }));
+    return false;
+  }
 }
 
 function mustDb<T>(db: T | null): T { if (!db) throw new Error("The assessment database is not available."); return db; }

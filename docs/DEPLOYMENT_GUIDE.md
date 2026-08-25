@@ -25,6 +25,10 @@
 | Monitoring | Forward structured request and audit logs to the organization’s approved monitoring platform. |
 | Release gate | Run `pnpm check`, `pnpm test`, `pnpm build`, and `pnpm audit --prod --audit-level high`. |
 
+## Health verification
+
+Use `/healthz` for a process probe and `/readyz` for a process-readiness payload. Both endpoints return HTTP 200 after deployment. The readiness payload reports database availability as `ready` or `degraded`, so a transient dependency signal does not cause the managed platform to route the complete public application to a maintenance page. Protected assessment procedures continue to fail closed if the database is unavailable.
+
 ## GitHub handoff
 
 The repository contains a GitHub Actions workflow, Dependabot updates, issue template, contribution guide, security reporting guidance, a [configuration reference](CONFIGURATION_REFERENCE.md), a [local and production configuration template](LOCAL_CONFIG_TEMPLATE.md), a [GitHub release checklist](GITHUB_RELEASE_CHECKLIST.md), and project documentation. Create a **private repository first** if the internship proposal, internal references, or screenshots are not public.

@@ -8,7 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { getDb } from "../db";
+import { getDatabaseHealth } from "../db";
 import { validateRuntimeEnvironment } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -53,8 +53,11 @@ async function startServer() {
   });
   app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok" }));
   app.get("/readyz", async (_req, res) => {
-    const database = await getDb();
-    res.status(database ? 200 : 503).json({ status: database ? "ready" : "degraded", database: Boolean(database) });
+    const database = await getDatabaseHealth();
+    // This endpoint answers process readiness for the managed platform. A transient database
+    // dependency signal is reported in the payload rather than making the public application
+    // unavailable; protected procedures still fail closed when a database is unavailable.
+    res.status(200).json({ status: database ? "ready" : "degraded", database });
   });
   app.use(express.json({ limit: "256kb" }));
   app.use(express.urlencoded({ limit: "32kb", extended: false }));
