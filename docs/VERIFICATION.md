@@ -31,6 +31,8 @@ The suite now contains **42 passing tests** across fifteen files. In addition to
 
 The loopback-only controlled-lab test starts an ephemeral HTTP server on `127.0.0.1` and invokes the shared scanner with its test-only local harness option. It confirms expected passive findings for absent headers, unsafe cookie attributes, wildcard CORS, server disclosure, and absent HTTP-to-HTTPS redirect behavior, while asserting that the test cookie value is redacted. The local server is closed after the test and the hosted scanner continues to reject loopback targets.
 
+On 25 August 2026, the isolated controlled-lab validation and complete regression suite were re-run successfully: **42 tests across 15 files passed**, including the loopback fixture. A fresh production build completed successfully, and `pnpm audit --prod --audit-level high` reported no known production vulnerabilities. No public deliberately vulnerable site was contacted; validation remained limited to fixture data and the ephemeral `127.0.0.1` test server.
+
 The CSV report verification includes three layers: renderer-level schema, redaction, and spreadsheet-formula neutralization checks; CLI generation and artifact-content checks; and a protected API-level test that verifies a CSV artifact’s storage metadata, owner-checked signed URL retrieval, download counter call, and audit event.
 
 The reviewed non-destructive migration `0003_futuristic_power_man.sql` was applied successfully. It adds a persisted `retentionDays` target-policy field and a per-user unique request ID constraint that prevents duplicate live starts from a retried launch request.

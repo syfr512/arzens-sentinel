@@ -1,85 +1,157 @@
 # Arzens Sentinel
 
-> **A portfolio-ready, AI-assisted vulnerability scanner and remediation workspace for authorized web-security assessments.**
+> **An AI-assisted, safety-bounded security operations workspace for authorized web assessments.**
 
-Arzens Sentinel turns the internship proposal into a polished end-to-end security-operations product: an authenticated dashboard, bounded safe-passive scanner, explainable finding model, review workflow, structured remediation guidance, professional reports, shared-core CLI, and local-only OWASP ZAP adapter boundary.
+Arzens Sentinel is the internship implementation of an AI-powered vulnerability assessment and remediation engine. It combines an authenticated React dashboard, Express/tRPC API, MySQL-compatible persistence, managed report storage, a shared Safe Passive scanner core, explainable findings, advisory remediation, exportable reports, and a local CLI.
 
-## Why this implementation is stronger than the original proposal
+**Live application:** [arzenscan-gvtdnrjn.manus.space](https://arzenscan-gvtdnrjn.manus.space)
+**Safe review path:** Sign in, select **Run Demo Scan**, then review the fixture-backed findings and exports. The Demo Scan never contacts a third-party target.
 
-The proposal’s Python/Streamlit/ZAP direction was valuable as a starting point, but a single-process Python UI tightly couples interface and scanner responsibilities. This implementation uses a typed React + TypeScript application with a separate scanner-core so the dashboard, server procedures, CLI, scoring, reports, and future ZAP adapter share one predictable security model.
+## What it does
 
-| Proposal goal | Production-minded implementation |
+| Area | Delivered capability |
 |---|---|
-| Automated web/API crawler | Bounded same-origin HTTP(S) scanner with strict URL/DNS/redirect SSRF checks and page/response/time limits. |
-| Risk scoring | Stable rule IDs with transparent impact/exploitability factors and preserved original severity. |
-| LLM remediation | Server-side strict-schema guidance, evidence grounding, advisory labels, deterministic fallback, and no automatic patch application. |
-| PDF reporting | Redacted JSON, print-ready HTML, and server-generated PDF artifacts stored outside the database. |
-| OWASP ZAP | Local-only alert-normalization boundary with fixture tests and lab documentation. |
+| Authorized assessment | HTTPS target-control proof, persisted origin/path scope, expiry/revocation controls, idempotent scan starts, cancellation, and audit events. |
+| Bounded scanner | Safe Passive HTTP(S) observations only, same-origin discovery, DNS-pinned connections, redirect re-validation, strict page/byte/time limits, SSRF controls, and evidence redaction. |
+| Explainable review | Stable rule identifiers, CVSS-inspired scoring factors, severity rationale, filters, notes, non-destructive overrides, and preserved original risk scores. |
+| Remediation | Deterministic guidance by default, optional server-only structured AI assistance, schema validation, daily limits, advisory labels, and no automatic patching. |
+| Reports | Owner-protected redacted JSON, CSV, HTML, and PDF exports, with signed retrieval and audit metadata. |
+| Engineering quality | Typed React/TypeScript codebase, Vitest regression suite, CI workflow, Dependabot, controlled loopback lab, local CLI, security documentation, and GitHub handoff material. |
 
-## Core workflow
+## Safety model
 
-```mermaid
-flowchart LR
-  A[Run Demo Scan or issue HTTPS target proof] --> B[Verify origin and path scope]
-  B --> C[Run bounded Safe Passive assessment]
-  C --> D[Review redacted findings]
-  D --> E[Record status, notes, or severity override]
-  E --> F[Generate advisory remediation]
-  F --> G[Export JSON, HTML, or PDF report]
-```
+Arzens Sentinel is intentionally **not** a general exploitation platform. Hosted assessments are limited to Safe Passive checks and require the target controller to publish a one-time `/.well-known/arzens-sentinel-verification.txt` proof file. The scanner rejects private, loopback, link-local, metadata, mixed-DNS, and redirect-bypass destinations. It does not run credential attacks, brute-force campaigns, exploit payloads, authenticated target actions, destructive testing, or automatic remediation.
 
-## Feature highlights
+> Use the live-target workflow only for systems you own or have explicit written authorization to assess. For demonstrations, use the built-in Demo Scan or the isolated controlled lab.
 
-The dashboard provides overview metrics, assessment history, a safe scan-creation flow, detailed findings review, severity filters, endpoint coverage, activity trail, report controls, methodology, and responsive accessible states. The Demo Scan is fixture-backed and does **not** target an external system.
+## Download and local installation
 
-The scanner defaults to **Safe Passive**. Live targets require an HTTPS `/.well-known/` proof file, a verified origin and path scope, policy snapshot, expiry, revocation path, and audit trail before an assessment begins. The transport validates protocols, blocks private/loopback/link-local/reserved/metadata and mixed-DNS targets, pins the validated DNS answer at connection time, re-validates redirects, bounds crawling and wall-clock duration, observes only in-scope links, and redacts sensitive-looking evidence before database, report, or AI use.
+### Prerequisites
 
-## Local quick start
+| Requirement | Recommended version | Purpose |
+|---|---:|---|
+| Node.js | 22 or later | Application runtime and build tooling. |
+| pnpm | 10.4 or later | Locked dependency installation. |
+| MySQL-compatible database | MySQL 8 / TiDB-compatible | Persistent user, assessment, finding, report-metadata, and audit data. |
+| OAuth and managed storage settings | Deployment-provided | Authentication and protected report artifacts. |
+
+### Get the source
+
+Clone the repository once it is available on GitHub, or use **Code → Download ZIP** on the repository page and extract it locally.
 
 ```bash
-pnpm install
-pnpm check
-pnpm test
+git clone https://github.com/syfr512/arzens-sentinel.git
+cd arzens-sentinel
+
+# Enable the package-manager version declared by the repository.
+corepack enable
+corepack prepare pnpm@10.4.1 --activate
+
+# Reproducible dependency install.
+pnpm install --frozen-lockfile
+```
+
+### Configure a local environment
+
+Read [`docs/LOCAL_CONFIG_TEMPLATE.md`](docs/LOCAL_CONFIG_TEMPLATE.md) before creating local environment values. It documents every required configuration key, the responsible source, validation behavior, and the rule that real secrets must never be committed.
+
+For a full self-managed installation, provide a MySQL-compatible `DATABASE_URL`, session/OAuth configuration, and storage/AI settings only where needed. In the managed deployment, authentication, database, and storage credentials are injected by the platform; do not copy those production values into a local `.env` file.
+
+Apply the reviewed database migrations only to a database you control:
+
+```bash
+# Inspect migration SQL first, then apply it to the configured local database.
+pnpm db:push
+```
+
+### Run locally
+
+```bash
+# Starts the local development server.
 pnpm dev
 ```
 
-The managed web project supplies authentication, database credentials, and secure object storage. For the reviewer path, sign in and click **Run Demo Scan**. For authorized live testing, use **New assessment** to issue and verify a proof file before starting the bounded hosted scan.
+Open the server URL printed in the terminal. The local environment must have its OAuth redirect and database settings aligned with the URL you use for development.
+
+## Quality checks and controlled validation
+
+Run these commands before opening a pull request, tagging a release, or deploying a change:
+
+```bash
+pnpm check
+pnpm test
+pnpm build
+pnpm audit --prod --audit-level high
+```
+
+The release suite currently contains **42 passing tests across 15 files**. It includes a real, ephemeral loopback-only test server that verifies passive findings such as missing headers, unsafe cookies, permissive CORS, disclosure headers, and absent redirects. The test server is created only inside Vitest and is shut down immediately; it is not a public target and does not expand the hosted scanner’s permissions.
+
+## Demo, live proof workflow, and reports
+
+### Zero-network demonstration
+
+1. Sign in to the dashboard.
+2. Select **Run Demo Scan**.
+3. Open the created assessment to review the five fixture-backed findings, evidence redaction indicators, scoring, and reviewer controls.
+4. Use the **JSON**, **CSV**, **HTML**, and **PDF** controls to verify protected report generation.
+
+### Authorized Safe Passive assessment
+
+1. Open **New assessment** and enter only an HTTPS origin and path scope that you are authorized to assess.
+2. Copy the generated verification value into `/.well-known/arzens-sentinel-verification.txt` on that target.
+3. Verify the proof in the dashboard, choose conservative page/time/retention limits, and start the assessment.
+4. Review redacted findings, reviewer status, advisory remediation, and reports. Revoke the authorization or cancel the assessment whenever needed.
+
+The complete evaluator procedure is in [`docs/LIVE_TESTING_GUIDE.md`](docs/LIVE_TESTING_GUIDE.md). The detailed operator controls and limitations are in [`docs/LIVE_TESTING_RUNBOOK.md`](docs/LIVE_TESTING_RUNBOOK.md).
 
 ## CLI
 
-The CLI uses the same scanner-core and report renderer as the web application.
+The local CLI uses the same Safe Passive scanner core and report renderer as the application.
 
 ```bash
-# Zero-network fixture demonstration
+# Zero-network fixture demonstration; no external site is contacted.
 pnpm cli -- --demo --format json --output ./reports
 
-# Authorized target only; non-zero exit code if high+ findings occur
-pnpm cli -- --target https://app.example.com --authorized --format pdf --max-pages 4 --timeout-ms 8000 --fail-on high
+# Authorized target only. Returns exit code 1 when a high-or-worse signal is found.
+pnpm cli -- --target https://app.example.com --authorized \
+  --format pdf --max-pages 4 --timeout-ms 8000 --fail-on high
 ```
 
-| Option | Purpose |
+| Option | Use |
 |---|---|
-| `--demo` | Uses a controlled fixture only; no third-party network target. |
-| `--target <url>` | Runs the bounded Safe Passive scanner against an authorized HTTP(S) target. |
-| `--format json|html|pdf` | Chooses the report artifact type. |
-| `--output <directory>` | Writes the local report directory. |
-| `--max-pages`, `--timeout-ms` | Tightens bounded scanner limits. |
-| `--fail-on <severity>` | Returns exit code `1` when a finding meets/exceeds the threshold, useful in CI. |
+| `--demo` | Uses the controlled fixture path without contacting a third-party system. |
+| `--target <url>` | Supplies an authorized HTTP(S) target for the bounded scanner. |
+| `--format json|html|pdf` | Selects a local report format. |
+| `--output <directory>` | Sets the report output directory. |
+| `--max-pages`, `--timeout-ms` | Tighten scanner limits for cautious local use. |
+| `--fail-on <severity>` | Makes CI fail when a finding meets or exceeds the selected severity. |
 
-## Security and AI boundaries
+## Deployment
 
-The original assessment score remains visible if a reviewer applies a severity override, and every override requires an audit note. Findings, remediation guidance, reports, and target data are always queried with ownership checks.
+The recommended production path is the managed application deployment, with the source retained in a **private GitHub repository** and CI enabled. Before deployment, follow [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) and verify:
 
-AI guidance is server-side and schema-validated. It is labeled **AI-generated / verify before applying** when enabled, returns to deterministic guidance if unavailable or invalid, and can never automatically apply a patch. The initial build uses deterministic fallback by default, so **no OpenAI API key is required**. Optional built-in AI guidance is server-only, advisory, and limited to 10 generations per workspace per day.
+1. Production secrets and OAuth/database URLs are set through the deployment secret manager rather than source control.
+2. Storage retention, gateway/WAF rate limits, and outbound network controls are configured by the deployment owner.
+3. The controlled Demo Scan, authorization proof, bounded assessment, report retrieval, cancellation, and authorization revocation are tested in a permitted environment.
+4. External monitoring uses **`/api/health`** and **`/readyz`**. The managed platform reserves `/healthz`.
 
-## Documentation
+## Project documentation
 
-Read the [architecture](docs/ARCHITECTURE.md), [threat model](docs/THREAT_MODEL.md), [responsible-use policy](docs/RESPONSIBLE_USE.md), [live-testing runbook](docs/LIVE_TESTING_RUNBOOK.md), [reviewer live-testing guide](docs/LIVE_TESTING_GUIDE.md), [controlled-lab protocol](docs/CONTROLLED_LAB.md), [professional security review](docs/SECURITY_REVIEW.md), [submission report](docs/SUBMISSION_REPORT.md), [deployment decision guide](docs/DEPLOYMENT_GUIDE.md), [configuration template](docs/LOCAL_CONFIG_TEMPLATE.md), [GitHub release checklist](docs/GITHUB_RELEASE_CHECKLIST.md), [local ZAP adapter notes](docs/ZAP_LOCAL_LAB.md), and [verification record](docs/VERIFICATION.md) for the portfolio narrative, operational boundaries, and test evidence.
+| Document | Purpose |
+|---|---|
+| [`docs/SUBMISSION_REPORT.md`](docs/SUBMISSION_REPORT.md) | Internship-ready executive report, architecture, results, limitations, deployment evidence, and screenshots. |
+| [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | Reproducible validation evidence, release checks, controlled-lab record, and public endpoint results. |
+| [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md) | Security assessment, controls, residual risks, and operational responsibilities. |
+| [`docs/CONTROLLED_LAB.md`](docs/CONTROLLED_LAB.md) | Isolated test-lab policy and loopback validation details. |
+| [`docs/LOCAL_CONFIG_TEMPLATE.md`](docs/LOCAL_CONFIG_TEMPLATE.md) | Repository-safe local and production configuration guide. |
+| [`docs/GITHUB_RELEASE_CHECKLIST.md`](docs/GITHUB_RELEASE_CHECKLIST.md) | Repository export, CI, review, deployment, and release handoff checklist. |
+| [`SECURITY.md`](SECURITY.md) | Private security-reporting and responsible-disclosure expectations. |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution safety and quality requirements. |
 
-## Verification status
+## Release status
 
-The Vitest suite covers scanner safety boundaries, authorization scope, redaction, score mapping, fixture-backed demo behavior, deterministic remediation, AI-off fallback, verified-target enforcement, live-scan policy handoff, duplicate-run rejection, rate budgeting, owner-checked report retrieval, ZAP normalization, HTML/JSON/PDF report generation, and authentication logout behavior. The release validation also runs type checking, production build, readiness/header probes, and `pnpm audit --prod --audit-level high`.
+The current release has been type-checked, built for production, audited for high-severity production dependency vulnerabilities, verified through the authenticated dashboard and fixture-backed Demo Scan, and exercised through its isolated loopback controlled lab. The public deployment exposes application-owned health monitoring at [`/api/health`](https://arzenscan-gvtdnrjn.manus.space/api/health) and dependency readiness at [`/readyz`](https://arzenscan-gvtdnrjn.manus.space/readyz).
 
-## Professional limitations
+## Contributing and security reporting
 
-Arzens Sentinel performs bounded, unauthenticated, evidence-led checks. It does not prove exploitability, does not guarantee that a system is secure, and does not replace a professional penetration test. Use it only on targets you are authorized to assess.
+Review [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting changes, especially changes to scanner networking, target authorization, report rendering, storage, migrations, or workflows. Do not publish target evidence, credentials, signed report links, or security reports in public issues. Use [`SECURITY.md`](SECURITY.md) for responsible private reporting.

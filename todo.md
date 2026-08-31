@@ -80,3 +80,7 @@
 - [x] Add a UI-level regression test confirming that an unauthenticated workspace renders the explicit sign-in shell.
 - [x] Add a UI-level regression test confirming that a completed empty workspace renders its ready empty state.
 - [x] Refresh the release documentation and handoff checklist with the final 42-test automated validation count and UI-state coverage.
+- [x] Re-run and document the isolated loopback controlled-lab validation rather than scanning a public vulnerable website.
+- [ ] Verify access to `https://github.com/syfr512/arzens-sentinel.git` and export the reviewed project to that specified repository.
+- [x] Polish the README with clear prerequisite, installation, configuration, local-run, test, production-build, deployment, and safety-boundary instructions.
+- [ ] Produce a clean, downloadable source archive and final handoff checkpoint after the controlled validation and GitHub export.
